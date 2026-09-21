@@ -1,0 +1,45 @@
+{
+  "name": "dndn",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "preinstall": "npx --yes only-allow npm",
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "next": "^16.2.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5",
+    "tailwindcss": "^4",
+    "@tailwindcss/postcss": "^4",
+    "@tanstack/react-query": "^5.96.1",
+    "@prisma/client": "^7.6.0",
+    "@prisma/adapter-pg": "^7.6.0",
+    "zustand": "^5.0.12",
+    "react-hook-form": "^7.72.0",
+    "@hookform/resolvers": "^5.2.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^16.2.2",
+    "vitest": "^2.0.0",
+    "@playwright/test": "^1.47.0",
+    "prisma": "^7.6.0",
+    "dotenv": "^17.0.0"
+  }
+}

@@ -1,0 +1,105 @@
+# ci.yml — HCG 하네스가 렌더링한 결정론적 검증 게이트.
+# 세션/task-agent 의 수기 검증(완료 보고)과 "기계의 재검증"을 이중화한다:
+# 보고가 틀려도, 사람이 에이전트 없이 직접 커밋해도 여기서 잡힌다.
+# 의미론적 계약 드리프트(결정론 검사가 못 보는 것)는 converge 워크플로 담당.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  # prisma generate/validate 용 더미 URL — CI 에서 실제 DB 연결은 하지 않는다
+  DATABASE_URL: "postgresql://ci:ci@127.0.0.1:5432/ci"
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: "apps/web/package-lock.json"
+      # 잠금파일은 커밋 대상 — 없으면 npm ci 가 여기서 실패한다(재현 불가 빌드 방지)
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build
+
+  # contracts/db-schema ↔ Prisma 결정론적 드리프트 게이트.
+  # 스키마·마이그레이션 불일치면 비-0 종료 → 빌드 실패
+  # Prisma 7 은 마이그레이션 재생(diff --from-migrations)에 shadow DB 가 필수 —
+  # 서비스 컨테이너를 쓰고 prisma.config.ts 가 SHADOW_DATABASE_URL 을 읽는다.
+  contract-drift:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: shadow
+          POSTGRES_PASSWORD: root
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s --health-timeout=5s --health-retries=10
+    env:
+      SHADOW_DATABASE_URL: "postgresql://postgres:root@127.0.0.1:5432/shadow"
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: "apps/web/package-lock.json"
+      - run: npm ci
+      - run: npx prisma validate
+      # 첫 마이그레이션 전 프로젝트도 게이트가 돌도록 — v7 은 커넥터 판별에 락 파일이 필요
+      - run: mkdir -p prisma/migrations
+      - run: test -f prisma/migrations/migration_lock.toml || printf 'provider = "postgresql"\n' > prisma/migrations/migration_lock.toml
+      # v7: --to-schema-datamodel 은 제거됨 — --to-schema 사용
+      - run: >
+          npx prisma migrate diff
+          --from-migrations prisma/migrations
+          --to-schema prisma/schema.prisma
+          --exit-code
+
+  # E2E 는 실제 DB 가 필요하다 — 사용하려면 아래 주석을 해제 (PostgreSQL 서비스 컨테이너).
+  # 앱 기동 방식(playwright.config.ts 의 webServer 등)에 맞춰 조정할 것.
+  # e2e:
+  #   runs-on: ubuntu-latest
+  #   services:
+  #     postgres:
+  #       image: postgres:16
+  #       env:
+  #         POSTGRES_DB: ci
+  #         POSTGRES_USER: ci
+  #         POSTGRES_PASSWORD: ci
+  #       ports: ["5432:5432"]
+  #       options: >-
+  #         --health-cmd="pg_isready -U ci -d ci"
+  #         --health-interval=5s --health-timeout=5s --health-retries=10
+  #   defaults:
+  #     run:
+  #       working-directory: apps/web
+  #   env:
+  #     DATABASE_URL: "postgresql://ci:ci@127.0.0.1:5432/ci"
+  #   steps:
+  #     - uses: actions/checkout@v7
+  #     - uses: actions/setup-node@v6
+  #       with: { node-version: 22, cache: npm, cache-dependency-path: "apps/web/package-lock.json" }
+  #     - run: npm ci
+  #     - run: npx prisma generate
+  #     - run: npx prisma migrate deploy
+  #     - run: npx playwright install --with-deps chromium
+  #     - run: npm run test:e2e

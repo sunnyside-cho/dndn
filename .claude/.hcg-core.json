@@ -1,0 +1,138 @@
+{
+  "profile": "hcg",
+  "profileVersion": "0.2.0",
+  "harnessVersion": "0.1.6",
+  "bootstrappedAt": "2026-09-21T09:25:54.096Z",
+  "upgradedAt": null,
+  "choices": {
+    "projectName": "dndn",
+    "appDir": "apps/web",
+    "app": true
+  },
+  "manifest": {
+    ".claude/agents/task-agent.md": {
+      "managed": true,
+      "sha256": "c7973f061d5c924da9d46f5e888a59463291f53d767f74607e984bb75a70bcf3"
+    },
+    ".claude/CLAUDE-core.md": {
+      "managed": true,
+      "sha256": "0555caedc61b1601ae032c128dec676b609701c3923b09de30267dd2efc5e693"
+    },
+    ".claude/project.md": {
+      "managed": false,
+      "sha256": "0a9a464dc04f4ca8ffa14251c4c88e2dcf8b7fda91ce25d54c15d26e7aedaf3b"
+    },
+    ".claude/settings.json": {
+      "managed": true,
+      "sha256": "ec3a5ca75740b6b8690783d10d43b23124887f679e87aaad9eb8e24917267b18"
+    },
+    ".claude/skills/playwright-e2e/SKILL.md": {
+      "managed": false,
+      "sha256": "d0255fddef7564feab6853b4c7359f8c6976e923fb56ed8b568e33334cc09b24"
+    },
+    ".claude/skills/dndn-domain/SKILL.md": {
+      "managed": false,
+      "sha256": "365b8e3132c09e0e63f404c7b517dcfcf2fc20c21ec3a56b49e2164c87fe7003"
+    },
+    ".github/workflows/ci.yml": {
+      "managed": true,
+      "sha256": "21bd5f70c1e76aeb04d0f4797a0a8e2d29310baf2d06654be99902ebfb8c9f87"
+    },
+    "CLAUDE.md": {
+      "managed": true,
+      "sha256": "f5f2662c5f1234eeee09684336fbc7e3534c0a00ff0611a742c97aabd779a0d9"
+    },
+    "contracts/api-spec.md": {
+      "managed": false,
+      "sha256": "5dd4b65c1998ed2b708718eae958f8255d9fe5505f2bcbf945e40de70c738e33"
+    },
+    "contracts/db-schema.md": {
+      "managed": false,
+      "sha256": "b1540edec26a8e98b61d9937c768c146c59bf9aa49c2939321baeb835513e127"
+    },
+    "contracts/design-guide.md": {
+      "managed": false,
+      "sha256": "e3af10c1a158bd146fd418793e33ad79c6f6b1be2008c67e65ac3c4f16374174"
+    },
+    "contracts/shared-types.ts": {
+      "managed": false,
+      "sha256": "1789126f8030175edafce60ac7be47c1a0f5a45974c19da1decfe82eaeb83334"
+    },
+    "apps/web/.env.example": {
+      "managed": false,
+      "sha256": "1bd1cdd9b079aa1547662caf1b809a6c0b2a888f8b7a7252df1044428bc2681e"
+    },
+    "apps/web/.gitignore": {
+      "managed": false,
+      "sha256": "94b2d86518691bdec6f59c73c03cee4056927da49dcb2b395603c4b63446cb38"
+    },
+    "apps/web/.npmrc": {
+      "managed": false,
+      "sha256": "b8fee6b04a329c2a5ae8bd55199021e7fcf6a21954db843cfd533a789d4010bb"
+    },
+    "apps/web/app/globals.css": {
+      "managed": false,
+      "sha256": "42070e0b45bb201b2b838a52aaaa6e965f964e0b542d97f1fe517fe59c4b75a8"
+    },
+    "apps/web/app/layout.tsx": {
+      "managed": false,
+      "sha256": "111a530453acddce34c2b9bae202438dcbc6ce7e82ce7d555f47453d67ebf96b"
+    },
+    "apps/web/app/page.tsx": {
+      "managed": false,
+      "sha256": "f91f8301b605af37850e42556cb2bd4f59b87f73478e56ef0af085c50601b806"
+    },
+    "apps/web/e2e/home.spec.ts": {
+      "managed": false,
+      "sha256": "ab0a56138b6a7d643b6afb575337bce189027942c112847a4a4cec702b4273d4"
+    },
+    "apps/web/eslint.config.mjs": {
+      "managed": false,
+      "sha256": "c0f6a6bee14a84cb738b47186b15bce3813efcefe48cb5eec376ec5a051a4222"
+    },
+    "apps/web/lib/db.ts": {
+      "managed": false,
+      "sha256": "850fdb1b79b513aef51e176747147b779fead9fd283fa8766abb2b64d95e7343"
+    },
+    "apps/web/lib/query-client.tsx": {
+      "managed": false,
+      "sha256": "de1b799bcd16b64ffbcf32dfe6bd569f9ea0671165b0271abf33d1079968971e"
+    },
+    "apps/web/next.config.mjs": {
+      "managed": false,
+      "sha256": "7378473489712cc5aec4dfd4f6623faf2dcf5d90f33c0594fdad698afb8c66b2"
+    },
+    "apps/web/package.json": {
+      "managed": false,
+      "sha256": "1cee43f63c14b6fc46a7eb50e8dd2b6184f6545f44a21cf65a6cedbfe589f56b"
+    },
+    "apps/web/playwright.config.ts": {
+      "managed": false,
+      "sha256": "d55125d31997b55bc38f666f6187bd196c654eb693132d71b2fd83204c7d237e"
+    },
+    "apps/web/postcss.config.mjs": {
+      "managed": false,
+      "sha256": "e876747cec05454b000df921b6633a0aebaa3b6186e352da15eb069b5eb379e3"
+    },
+    "apps/web/prisma/schema.prisma": {
+      "managed": false,
+      "sha256": "dc202fcc1b6b42d63af6296498911b88bfce3e3ed88933b396c5e42441206bcf"
+    },
+    "apps/web/prisma.config.ts": {
+      "managed": false,
+      "sha256": "f50e37045fef6d4d1d46b3cbb20e53a7a6451f04f53bc2bf28a39c74536aa083"
+    },
+    "apps/web/tsconfig.json": {
+      "managed": false,
+      "sha256": "8fe315e7f7b7af378661567a95277477c22fc31af9b54b1b0353ca05a21f1103"
+    },
+    "apps/web/vitest.config.ts": {
+      "managed": false,
+      "sha256": "47baf1c5a029b79fc967be04702df924cda42536c9eb57391d463aaa250c5d94"
+    },
+    "apps/web/__tests__/smoke.test.ts": {
+      "managed": false,
+      "sha256": "c6c0653d858040e4d3c89840dc1a5bcfd1509d7fe0b8b71ca3ad25aab7c090f8"
+    }
+  }
+}

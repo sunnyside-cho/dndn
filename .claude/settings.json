@@ -1,0 +1,8 @@
+{
+  "env": {
+    "SESSION_CONTEXT_LABEL": "[dndn session context]"
+  },
+  "enabledPlugins": {
+    "hcg-harness@hcg-harness-marketplace": false
+  }
+}
