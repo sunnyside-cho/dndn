@@ -1,0 +1,63 @@
+// rules 로딩 유일 진입점 (contracts/api-spec.md · db-schema.md)
+// 연도 개정(W1) = 새 파일 추가 + 아래 import 전환. 이 파일 외에서 rules JSON 직접 import 금지.
+import type {
+  BasicPensionRules,
+  DependentRules,
+  InsuranceRules,
+  SeveranceRules,
+} from "@contracts/shared-types";
+import basicPension from "./basic-pension.2026.json";
+import dependent from "./dependent.2026.json";
+import insurance from "./insurance.2026.json";
+import severance from "./severance.2026.json";
+
+/** 활성 연도 — 화면 표기·연도 비교 기준 */
+export const ACTIVE_YEAR = 2026;
+
+// JSON 리터럴은 union("official" 등)으로 좁혀지지 않으므로 형태 캐스트가 필요하다.
+// 구조 드리프트는 __tests__/rules-shape.test.ts 가 잡는다.
+export const basicPensionRules = basicPension as unknown as BasicPensionRules;
+export const severanceRules = severance as unknown as SeveranceRules;
+export const dependentRules = dependent as unknown as DependentRules;
+export const insuranceRules = insurance as unknown as InsuranceRules;
+
+/** 내년(2027) 확정분 — 현행 rules 파일의 next2027 필드에서 파생 (미발표 항목은 없음) */
+export interface NextYearRates {
+  year: number;
+  /** 근로자 부담 요율 — 미발표는 null */
+  nationalPensionEmployee: number | null;
+  healthEmployee: number | null;
+  longTermCareFormula: string | null;
+  employmentEmployee: number | null;
+}
+
+export const nextYearRates: NextYearRates = {
+  year: ACTIVE_YEAR + 1,
+  nationalPensionEmployee: insuranceRules.nationalPension.next2027
+    ? insuranceRules.nationalPension.next2027.value / 2
+    : null,
+  healthEmployee: insuranceRules.healthInsurance.next2027?.value ?? null,
+  // 장기요양·고용은 연말 발표 — 발표 전 null (화면: "12월 발표 예정")
+  longTermCareFormula: null,
+  employmentEmployee: null,
+};
+
+export function getRules(toolId: "basic-pension"): BasicPensionRules;
+export function getRules(toolId: "severance-tax"): SeveranceRules;
+export function getRules(toolId: "dependent-check"): DependentRules;
+export function getRules(toolId: "insurance-rate" | "salary-senior"): InsuranceRules;
+export function getRules(
+  toolId: "basic-pension" | "severance-tax" | "dependent-check" | "insurance-rate" | "salary-senior",
+): BasicPensionRules | SeveranceRules | DependentRules | InsuranceRules {
+  switch (toolId) {
+    case "basic-pension":
+      return basicPensionRules;
+    case "severance-tax":
+      return severanceRules;
+    case "dependent-check":
+      return dependentRules;
+    case "insurance-rate":
+    case "salary-senior":
+      return insuranceRules;
+  }
+}

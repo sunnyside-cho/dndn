@@ -1,1 +1,141 @@
 @import "tailwindcss";
+
+/* ============================================================
+   AX Mono 토큰 (ax-wireframe html/tokens.md 그대로 주입 — 임의 변경 금지)
+   + dndn 시니어 UX 오버라이드 (contracts/design-guide.md)
+   ============================================================ */
+:root {
+  /* Grayscale scale */
+  --ink-900: #111111; --ink-800: #1f1f1f; --ink-700: #333333; --ink-600: #4d4d4d;
+  --ink-500: #767676; --ink-400: #999999; --ink-300: #c2c2c2; --ink-200: #e0e0e0;
+  --ink-100: #efefef; --ink-50: #f7f7f7; --white: #ffffff;
+
+  /* Roles */
+  --text-primary: #111111;
+  --text-secondary: #4d4d4d;
+  --text-tertiary: #767676; /* 캡션 전용 — 본문 금지 (design-guide) */
+  --text-disabled: #999999;
+  --on-inverse: #ffffff;
+  --surface: #ffffff;
+  --surface-subtle: #f7f7f7;
+  --surface-muted: #efefef;
+  --inverse: #111111;
+  --border: #e0e0e0;
+  --border-strong: #111111;
+  --divider: #ededed;
+
+  /* Typography */
+  --font-sans: "Pretendard", "IBM Plex Sans KR", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+
+  /* Radius / Spacing */
+  --radius-sm: 4px; --radius: 8px; --radius-lg: 12px; --radius-pill: 999px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;
+  --sp-8: 32px; --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px;
+
+  /* Elevation / Focus / Motion */
+  --shadow-overlay: 0 12px 32px rgba(17, 17, 17, 0.14);
+  --shadow-popover: 0 8px 24px rgba(17, 17, 17, 0.1);
+  --focus-ring: 0 0 0 2px #fff, 0 0 0 4px #111;
+  --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layout — 도구·글은 720 단일 컬럼 (design-guide) */
+  --container: 1440px;
+  --container-narrow: 720px;
+}
+
+/* 다크: 역할 토큰만 반전 (시스템 설정 따름 — 토글 없음, design-guide) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: #f7f7f7; --text-secondary: #c2c2c2; --text-tertiary: #999999;
+    --text-disabled: #4d4d4d; --on-inverse: #111111;
+    --surface: #111111; --surface-subtle: #1f1f1f; --surface-muted: #333333;
+    --inverse: #f7f7f7; --border: #333333; --border-strong: #f7f7f7; --divider: #1f1f1f;
+    --focus-ring: 0 0 0 2px #111, 0 0 0 4px #f7f7f7;
+  }
+}
+
+html { -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  background: var(--surface);
+  margin: 0;
+  /* 시니어 UX: 기본 본문 18px (F-06 — design-guide 오버라이드) */
+  font-size: 18px;
+  line-height: 30px;
+}
+* { box-sizing: border-box; }
+
+/* ---- Type scale (AX) ---- */
+.t-display { font-size: 48px; line-height: 56px; font-weight: 700; color: var(--text-primary); }
+.t-h1 { font-size: 36px; line-height: 46px; font-weight: 700; color: var(--text-primary); }
+.t-h2 { font-size: 28px; line-height: 38px; font-weight: 700; color: var(--text-primary); }
+.t-h3 { font-size: 22px; line-height: 32px; font-weight: 600; color: var(--text-primary); }
+.t-h4 { font-size: 18px; line-height: 28px; font-weight: 600; color: var(--text-primary); }
+.t-body-l { font-size: 18px; line-height: 30px; font-weight: 400; color: var(--text-secondary); }
+.t-body { font-size: 16px; line-height: 26px; font-weight: 400; color: var(--text-secondary); }
+.t-caption { font-size: 14px; line-height: 20px; font-weight: 400; color: var(--text-tertiary); }
+.t-label { font-size: 13px; line-height: 16px; font-weight: 600; letter-spacing: 0.04em; color: var(--text-tertiary); }
+@media (max-width: 768px) {
+  .t-display { font-size: 32px; line-height: 40px; }
+  .t-h1 { font-size: 28px; line-height: 36px; }
+  .t-h2 { font-size: 22px; line-height: 30px; }
+}
+
+/* ---- 포커스 (a11y) ---- */
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ---- 컨트롤 공통 (시니어 UX: 버튼 ≥48, 주요 CTA 56, 입력 ≥56/20px) ---- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 24px;
+  border-radius: var(--radius); border: 1px solid var(--border-strong);
+  font-size: 18px; font-weight: 600; cursor: pointer;
+  background: var(--surface); color: var(--text-primary);
+  transition: background var(--dur-fast) var(--ease-standard);
+  text-decoration: none;
+}
+.btn:hover { background: var(--surface-subtle); }
+.btn-primary { background: var(--inverse); color: var(--on-inverse); border-color: var(--inverse); }
+.btn-primary:hover { background: var(--ink-800); }
+@media (prefers-color-scheme: dark) { .btn-primary:hover { background: var(--ink-100); } }
+.btn-cta { min-height: 56px; font-size: 20px; width: 100%; }
+.btn-ghost { border-color: var(--border); font-weight: 500; }
+
+.input {
+  width: 100%; min-height: 56px; padding: 0 16px;
+  font-size: 20px; font-family: inherit; color: var(--text-primary);
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
+.input::placeholder { color: var(--text-disabled); }
+
+/* 선택형 답변 버튼(문답형 — 한 화면 한 질문) */
+.choice {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; min-height: 64px; padding: 0 20px; margin-bottom: 12px;
+  font-size: 20px; font-weight: 500; color: var(--text-primary); text-align: left;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+.choice:hover { border-color: var(--border-strong); }
+.choice[aria-pressed="true"], .choice[data-selected="true"] {
+  border: 2px solid var(--border-strong); background: var(--surface-subtle); font-weight: 700;
+}
+
+/* ---- 표 (기준 수치 표 · 비교표) ---- */
+.table { width: 100%; border-collapse: collapse; font-size: 16px; line-height: 24px; }
+.table th, .table td { padding: 12px 16px; border-bottom: 1px solid var(--divider); text-align: left; }
+.table th { font-weight: 600; color: var(--text-primary); background: var(--surface-subtle); }
+.table td { color: var(--text-secondary); }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---- 인쇄 (F-05: 결과 출력 보관) ---- */
+@media print {
+  header, footer, nav, .no-print { display: none !important; }
+  body { background: #fff; color: #111; }
+  main { max-width: none; }
+}

@@ -1,0 +1,35 @@
+{
+  "_meta": {"year": 2026, "status": "draft", "asOf": "2026-09-21",
+    "law": "국민건강보험법 시행규칙 별표1·1의2 (2025-04-23 개정, 금액 변동 없음 원문 확인), 시행령 제44조",
+    "note": "미검증: 보증금 30% 평가율, 주택 공정시장가액비율 60%(지방세법), 상하한 고시 원문"},
+  "dependentEligibility": {
+    "incomeMax": {"value": 20000000, "unit": "연", "verified": "official", "source": "별표1의2 1호"},
+    "businessIncome": {
+      "registered": "사업자등록 있으면 사업소득 발생 즉시 탈락 (500만 특례 없음)",
+      "unregistered": "미등록자는 연 500만원 이하 허용",
+      "rentalIncome": "주택임대소득 있으면 금액 불문 탈락",
+      "verified": "official", "source": "별표1의2 1호 가~다목"
+    },
+    "pensionCounting": "피부양자 판정에는 공적연금 100% 반영 (부과 시 50%와 다름 — 혼동 주의)",
+    "coupleRule": "부부 모두 소득요건 충족 필요 (재산은 각자 판정)",
+    "assetMax": {
+      "tier1": {"value": 540000000, "rule": "재산세 과세표준 5.4억 이하 → 충족"},
+      "tier2": {"value": 900000000, "rule": "5.4억~9억이면 연소득 1,000만원 이하일 때만 충족"},
+      "sibling": {"value": 180000000, "rule": "형제자매는 1.8억 이하 (30세미만/65세이상/장애 등만 해당)"},
+      "verified": "official", "source": "별표1의2 2호"
+    }
+  },
+  "regionalPremium": {
+    "healthRate": {"value": 0.0719, "verified": "official", "source": "시행령 제44조1항 (2026, 2027 동결 기결정)"},
+    "incomeReflection": {"full": "이자·배당·사업·기타 100%", "half": "근로·연금 50%", "verified": "official", "source": "시행규칙 제44조2항"},
+    "assetBasicDeduction": {"value": 100000000, "verified": "official", "source": "2024.2 개편"},
+    "assetPointPrice": {"value": 211.5, "verified": "official", "source": "시행령 제44조2항"},
+    "assetPointTable": "60등급 점수표 — 시행령 별표4 (law.go.kr flSeq=156177245) 데이터 파일로 별도 수록 필요",
+    "carLevy": {"value": 0, "note": "자동차 부과 2024.2 전면 폐지", "verified": "official"},
+    "longTermCareRate": {"value": 0.009448, "formula": "건강보험료 × 0.9448/7.19", "verified": "official"},
+    "monthlyMin": {"value": 20160, "verified": "check", "note": "고시 원문 대조 미완"},
+    "monthlyMax": {"value": 4591740, "verified": "check"},
+    "jeonseDeposit": {"note": "무주택자 보증금 30% 평가 — 통설, 원문 미확인", "verified": "check"}
+  },
+  "verifyAgainst": "https://www.nhis.or.kr/nhis/minwon/retrieveLocalCalcView.do (지역보험료 모의계산)"
+}

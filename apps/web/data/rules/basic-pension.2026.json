@@ -1,0 +1,55 @@
+{
+  "_meta": {
+    "year": 2026,
+    "status": "draft",
+    "asOf": "2026-09-21",
+    "note": "법제처 원문 확인 기반 초안. verified=official은 고시·법령 원문 확인, check는 비공식 교차확인만 된 값(사용 전 재확인).",
+    "primarySources": {
+      "고시": "보건복지부고시 제2026-156호 (2026-07-30 시행) — law.go.kr admRulId=56797",
+      "법": "기초연금법 (2025-10-01 시행)",
+      "발표": "https://www.korea.kr/news/policyNewsView.do?newsId=148957428"
+    }
+  },
+  "selectionCriteria": {
+    "single": {"value": 2470000, "verified": "official", "source": "고시 제2조"},
+    "couple": {"value": 3952000, "verified": "official", "source": "고시 제2조"}
+  },
+  "basePension": {
+    "monthlyMax": {"value": 349700, "verified": "official", "source": "고시 제3조"},
+    "coupleReductionRate": {"value": 0.20, "verified": "official", "source": "법 제8조1항"},
+    "minPaymentRate": {"value": 0.10, "note": "소득역전방지 최저 = 기준연금액의 10% = 34,970원", "verified": "official", "source": "시행령 제11조1항"}
+  },
+  "incomeEvaluation": {
+    "laborBasicDeduction": {"value": 1160000, "verified": "official", "source": "고시 제6조 (2025년 112만→116만)"},
+    "laborExtraDeductionRate": {"value": 0.30, "verified": "official", "source": "고시 제6조"},
+    "interestDeduction": {"value": 40000, "verified": "official", "source": "고시 제6조의2"},
+    "freeRentHousePriceMin": {"value": 600000000, "note": "1촌 직계비속 소유 6억+ 주택 거주 시 무료임차소득", "verified": "official", "source": "고시 제4조"},
+    "freeRentRate": {"value": 0.0078, "note": "연 0.78% — 비공식 확인만, 사업안내 재확인 필요", "verified": "check"}
+  },
+  "assetConversion": {
+    "basicDeduction": {
+      "metro": {"value": 135000000, "verified": "check", "note": "고시 별표가 이미지라 원문 미확보 — 재확인 필요"},
+      "city": {"value": 85000000, "verified": "check"},
+      "rural": {"value": 72500000, "verified": "check"}
+    },
+    "financialDeduction": {"value": 20000000, "verified": "official", "source": "고시 제9조"},
+    "conversionRateAnnual": {"value": 0.04, "verified": "official", "source": "시행규칙 제4조2항"},
+    "luxuryCarPriceMin": {"value": 40000000, "note": "가액 100% 월 가산 (공제·환산율 미적용). 차령 10년+ 등 제외", "verified": "official", "source": "고시 제11조, 시행규칙 제4조1항4호"},
+    "membershipFullAdd": {"value": true, "note": "회원권 시가표준액 100% 월 가산", "verified": "official", "source": "시행규칙 제4조1항4호"}
+  },
+  "npsLink": {
+    "fullPaymentThresholdRate": {"value": 1.5, "note": "국민연금 월액 ≤ 기준연금액 150%(524,550원)면 전액", "verified": "official", "source": "법 제6조1항"},
+    "formulaNote": "초과 시: max(0, 기준연금액 - A급여×2/3) + 부가연금액(기준연금액×1/2). v1 도구에서는 근사 처리 (TOOL_SPEC 참조)",
+    "range150to200": {"note": "150~200% 구간 특례 세부 산식 별도 확인 필요", "verified": "todo"}
+  },
+  "eligibility": {
+    "ageMin": 65,
+    "excluded": "직역연금(공무원·사학·군인·별정우체국) 수급권자와 배우자 — 예외: 연계연금 직역기간 10년 미만, 일시금 수령 후 5년 경과",
+    "verified": "official",
+    "source": "법 제3조3항, 시행령 제5조"
+  },
+  "updateSchedule": {
+    "note": "선정기준액·기준연금액 매년 12월말~1월 고시 → 1월 적용. 2027 값 12월 모니터링 필수. '저소득 40만원' 계획(2027 확대)은 현행 미시행 — 입법 여부 재확인",
+    "verified": "official"
+  }
+}
