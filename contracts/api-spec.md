@@ -20,7 +20,7 @@ rules 는 항상 인자로 받는다(내부 import 금지 — rules 교체 테�
 | F-02 | `computeSeverance` | `(input: SeveranceInput, rules: SeveranceRules) => SeveranceResult` |
 | F-03 | `checkDependent` | `(input: DependentInput, rules: DependentRules) => DependentResult` |
 | F-03 | `estimateRegionalPremium` | `(input: RegionalPremiumInput, rules: DependentRules) => RegionalPremiumEstimate` |
-| F-04 | `computeInsuranceDiff` | `(input: InsuranceRateInput, current: InsuranceRules, next: Partial<InsuranceRules> \| null) => InsuranceRateResult` |
+| F-04 | `computeInsuranceDiff` | `(input: InsuranceRateInput, current: InsuranceRules, next: NextYearRates) => InsuranceRateResult` |
 | F-07 | `computeSalarySenior` | `(input: SalarySeniorInput, rules: InsuranceRules, taxTable: SimplifiedTaxTable) => SalarySeniorResult` |
 
 - 금액 반올림: 각 항목은 원 단위 반올림(Math.round). 공식 사이트 대조(DoD) 시 오차 원인을

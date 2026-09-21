@@ -4,12 +4,15 @@ import type {
   BasicPensionRules,
   DependentRules,
   InsuranceRules,
+  NextYearRates,
   SeveranceRules,
+  SimplifiedTaxTable,
 } from "@contracts/shared-types";
 import basicPension from "./basic-pension.2026.json";
 import dependent from "./dependent.2026.json";
 import insurance from "./insurance.2026.json";
 import severance from "./severance.2026.json";
+import taxTable from "./tax-table.2026.json";
 
 /** 활성 연도 — 화면 표기·연도 비교 기준 */
 export const ACTIVE_YEAR = 2026;
@@ -20,17 +23,10 @@ export const basicPensionRules = basicPension as unknown as BasicPensionRules;
 export const severanceRules = severance as unknown as SeveranceRules;
 export const dependentRules = dependent as unknown as DependentRules;
 export const insuranceRules = insurance as unknown as InsuranceRules;
+/** 간이세액표 — rows 비어 있으면 미수록(소득세 '표 수록 전' 표시, 단정 금지) */
+export const simplifiedTaxTable = taxTable as unknown as SimplifiedTaxTable;
 
-/** 내년(2027) 확정분 — 현행 rules 파일의 next2027 필드에서 파생 (미발표 항목은 없음) */
-export interface NextYearRates {
-  year: number;
-  /** 근로자 부담 요율 — 미발표는 null */
-  nationalPensionEmployee: number | null;
-  healthEmployee: number | null;
-  longTermCareFormula: string | null;
-  employmentEmployee: number | null;
-}
-
+/** 내년(2027) 확정분 — 현행 rules 파일의 next2027 필드에서 파생 (미발표 항목은 null) */
 export const nextYearRates: NextYearRates = {
   year: ACTIVE_YEAR + 1,
   nationalPensionEmployee: insuranceRules.nationalPension.next2027

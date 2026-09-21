@@ -355,6 +355,15 @@ export interface InsuranceRateInput {
   age60Plus: boolean;
 }
 
+/** 내년 확정분 요율 — rules 파일의 next* 필드에서 파생 (미발표 항목은 null, 추측 금지) */
+export interface NextYearRates {
+  year: number;
+  nationalPensionEmployee: number | null;
+  healthEmployee: number | null;
+  longTermCareFormula: string | null;
+  employmentEmployee: number | null;
+}
+
 export type InsuranceItem = "nationalPension" | "health" | "longTermCare" | "employment";
 
 export interface InsuranceRateRow {
