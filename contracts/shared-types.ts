@@ -74,8 +74,8 @@ export interface SeveranceRules {
   serviceYearDeduction: {
     verified?: Verified;
     source?: string;
-    /** maxYears=null 이 마지막 구간. formula 는 표시용 — 계산 로직은 엔진이 구간 상수로 구현하되
-     *  brackets 의 상수와 1:1 대응해야 한다 (rules 교체 시 함께 교체됨). */
+    /** maxYears=null 이 마지막 구간. formula 가 계산의 정본 — 엔진이 문자열을 파싱해 계산한다
+     *  (허용 포맷: "1000000 * n" | "5000000 + 2000000 * (n - 5)"; rules 교체만으로 산식 갱신). */
     brackets: Array<{ maxYears: number | null; formula: string }>;
     yearRounding?: string;
   };
