@@ -4,7 +4,18 @@
 > 경로·스택·도메인 값을 주입받는다. 모든 `<...>` 를 프로젝트에 맞게 채운다.
 
 ## 정체성
-<이 제품이 무엇인지 한두 줄>
+은퇴 전후(50-60대)의 돈 문제 — 기초연금·퇴직금 세금·건보 피부양자·4대보험 — 를 "올해 기준으로
+정확하게" 계산해주는 도구 + 해설 사이트 (가칭 든든노후). 기획 SSOT: `D:\99_Etc\100_dndn\01_plan\`
+(PRD·FEATURES·BUILD_BRIEF·TOOL_SPEC 5종), 제도 데이터: `D:\99_Etc\100_dndn\02_data\rules\`.
+
+### 1단계 아키텍처 (BUILD_BRIEF)
+- **Next.js 정적 내보내기(SSG, `output:"export"`) + Vercel. DB 없음** — 모든 계산은 클라이언트,
+  입력값 서버 전송 금지(F-10). Supabase/Prisma 스캐폴딩은 2단계 대비 휴면 상태로 유지.
+- 제도 숫자는 코드 하드코딩 금지 — `apps/web/data/rules/*.json` 만 읽는다(개정 = 파일 교체).
+  각 값은 source(원문)·asOf(기준일) 필수, 화면 하단 SourceBadge 자동 표기.
+- URL에 연도 금지: `/basic-pension/` `/severance-tax/` `/dependent-check/` `/insurance-rate/`
+  `/salary-senior/` `/guide/[slug]/`. 도메인 연결 전 noindex.
+- 도구 페이지는 서버렌더 citable shell 6요소(정의·산식·예시·수치표+출처·해석·FAQ) 필수.
 
 ## 스택
 - 프레임워크: Next.js (App Router) + TypeScript(strict)
