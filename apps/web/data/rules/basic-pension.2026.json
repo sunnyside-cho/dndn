@@ -11,36 +11,120 @@
     }
   },
   "selectionCriteria": {
-    "single": {"value": 2470000, "verified": "official", "source": "고시 제2조"},
-    "couple": {"value": 3952000, "verified": "official", "source": "고시 제2조"}
+    "single": {
+      "value": 2470000,
+      "verified": "official",
+      "source": "고시 제2조"
+    },
+    "couple": {
+      "value": 3952000,
+      "verified": "official",
+      "source": "고시 제2조"
+    }
   },
   "basePension": {
-    "monthlyMax": {"value": 349700, "verified": "official", "source": "고시 제3조"},
-    "coupleReductionRate": {"value": 0.20, "verified": "official", "source": "법 제8조1항"},
-    "minPaymentRate": {"value": 0.10, "note": "소득역전방지 최저 = 기준연금액의 10% = 34,970원", "verified": "official", "source": "시행령 제11조1항"}
+    "monthlyMax": {
+      "value": 349700,
+      "verified": "official",
+      "source": "고시 제3조"
+    },
+    "coupleReductionRate": {
+      "value": 0.2,
+      "verified": "official",
+      "source": "법 제8조1항"
+    },
+    "minPaymentRate": {
+      "value": 0.1,
+      "note": "소득역전방지 최저 = 기준연금액의 10% = 34,970원",
+      "verified": "official",
+      "source": "시행령 제11조1항"
+    }
   },
   "incomeEvaluation": {
-    "laborBasicDeduction": {"value": 1160000, "verified": "official", "source": "고시 제6조 (2025년 112만→116만)"},
-    "laborExtraDeductionRate": {"value": 0.30, "verified": "official", "source": "고시 제6조"},
-    "interestDeduction": {"value": 40000, "verified": "official", "source": "고시 제6조의2"},
-    "freeRentHousePriceMin": {"value": 600000000, "note": "1촌 직계비속 소유 6억+ 주택 거주 시 무료임차소득", "verified": "official", "source": "고시 제4조"},
-    "freeRentRate": {"value": 0.0078, "note": "연 0.78% — 비공식 확인만, 사업안내 재확인 필요", "verified": "check"}
+    "laborBasicDeduction": {
+      "value": 1160000,
+      "verified": "official",
+      "source": "고시 제6조 (2025년 112만→116만)"
+    },
+    "laborExtraDeductionRate": {
+      "value": 0.3,
+      "verified": "official",
+      "source": "고시 제6조"
+    },
+    "interestDeduction": {
+      "value": 40000,
+      "verified": "official",
+      "source": "고시 제6조의2"
+    },
+    "freeRentHousePriceMin": {
+      "value": 600000000,
+      "note": "1촌 직계비속 소유 6억+ 주택 거주 시 무료임차소득",
+      "verified": "official",
+      "source": "고시 제4조"
+    },
+    "freeRentRate": {
+      "value": 0.0078,
+      "note": "연 0.78% — 비공식 확인만, 사업안내 재확인 필요",
+      "verified": "check"
+    }
   },
   "assetConversion": {
     "basicDeduction": {
-      "metro": {"value": 135000000, "verified": "check", "note": "고시 별표가 이미지라 원문 미확보 — 재확인 필요"},
-      "city": {"value": 85000000, "verified": "check"},
-      "rural": {"value": 72500000, "verified": "check"}
+      "metro": {
+        "value": 135000000,
+        "verified": "check",
+        "note": "고시 별표가 이미지라 원문 미확보 — 재확인 필요"
+      },
+      "city": {
+        "value": 85000000,
+        "verified": "check"
+      },
+      "rural": {
+        "value": 72500000,
+        "verified": "check"
+      }
     },
-    "financialDeduction": {"value": 20000000, "verified": "official", "source": "고시 제9조"},
-    "conversionRateAnnual": {"value": 0.04, "verified": "official", "source": "시행규칙 제4조2항"},
-    "luxuryCarPriceMin": {"value": 40000000, "note": "가액 100% 월 가산 (공제·환산율 미적용). 차령 10년+ 등 제외", "verified": "official", "source": "고시 제11조, 시행규칙 제4조1항4호"},
-    "membershipFullAdd": {"value": true, "note": "회원권 시가표준액 100% 월 가산", "verified": "official", "source": "시행규칙 제4조1항4호"}
+    "financialDeduction": {
+      "value": 20000000,
+      "verified": "official",
+      "source": "고시 제9조"
+    },
+    "conversionRateAnnual": {
+      "value": 0.04,
+      "verified": "official",
+      "source": "시행규칙 제4조2항"
+    },
+    "luxuryCarPriceMin": {
+      "value": 40000000,
+      "note": "가액 100% 월 가산 (공제·환산율 미적용). 차령 10년+ 등 제외",
+      "verified": "official",
+      "source": "고시 제11조, 시행규칙 제4조1항4호"
+    },
+    "membershipFullAdd": {
+      "value": true,
+      "note": "회원권 시가표준액 100% 월 가산",
+      "verified": "official",
+      "source": "시행규칙 제4조1항4호"
+    },
+    "rentDepositRate": {
+      "value": 0.95,
+      "verified": "official",
+      "source": "2026 기초연금 사업안내 — 임차보증금 주거용 적용률(5% 공제). REVIEW_2026-09-22 C-2 검수 확정",
+      "note": "임차보증금 × 0.95 를 일반재산에 합산 (종전 스펙의 50%는 임대인 임대보증금 부채 규정 오적용이었음)"
+    }
   },
   "npsLink": {
-    "fullPaymentThresholdRate": {"value": 1.5, "note": "국민연금 월액 ≤ 기준연금액 150%(524,550원)면 전액", "verified": "official", "source": "법 제6조1항"},
+    "fullPaymentThresholdRate": {
+      "value": 1.5,
+      "note": "국민연금 월액 ≤ 기준연금액 150%(524,550원)면 전액",
+      "verified": "official",
+      "source": "법 제6조1항"
+    },
     "formulaNote": "초과 시: max(0, 기준연금액 - A급여×2/3) + 부가연금액(기준연금액×1/2). v1 도구에서는 근사 처리 (TOOL_SPEC 참조)",
-    "range150to200": {"note": "150~200% 구간 특례 세부 산식 별도 확인 필요", "verified": "todo"}
+    "range150to200": {
+      "note": "150~200% 구간 특례 세부 산식 별도 확인 필요",
+      "verified": "todo"
+    }
   },
   "eligibility": {
     "ageMin": 65,

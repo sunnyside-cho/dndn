@@ -3,6 +3,7 @@ import type { SeveranceInput, SeveranceRules } from "@contracts/shared-types";
 import { severanceRules } from "@/data/rules";
 import {
   computeSeverance,
+  convertedTaxFor,
   parseConvertedSalaryDeduction,
   parseServiceYearFormula,
   serviceYearsBetween,
@@ -87,10 +88,12 @@ describe("computeSeverance — 앵커: 퇴직금 1억·근속 20년", () => {
 });
 
 describe("computeSeverance — 추가 케이스 (수기 계산 앵커)", () => {
-  it("근속 1년 미만 올림: 500만·6개월 → 1년으로 계산", () => {
+  it("근속 1년 미만 올림: 500만·6개월 → 1년으로 계산 (2구간 세율 — REVIEW C-1 실측 케이스)", () => {
     // 근속 1년: 공제 100만 → 환산급여 (500만−100만)×12 = 4,800만
     // 환산급여공제 800만 + (4,800만−800만)×60% = 3,200만 → 과세표준 1,600만
-    // 세액 1,600만×15% − 84만 = 156만 → ÷12×1 = 13만 + 지방세 1.3만
+    // 세액(quick=구간 시작점 누적세액): 84만 + (1,600만−1,400만)×15% = 114만
+    //   교차검증: 표준 누진공제표 방식 1,600만×15% − 126만 = 114만 ✓ (REVIEW_2026-09-22 정답)
+    // → ÷12×1 = 95,000 + 지방세 9,500
     const r = computeSeverance(
       { severancePay: 5_000_000, joinDate: "2024-01-01", leaveDate: "2024-06-30" },
       severanceRules,
@@ -100,16 +103,18 @@ describe("computeSeverance — 추가 케이스 (수기 계산 앵커)", () => {
     expect(r.convertedSalary).toBe(48_000_000);
     expect(r.convertedSalaryDeduction).toBe(32_000_000);
     expect(r.taxBase).toBe(16_000_000);
-    expect(r.convertedTax).toBe(1_560_000);
-    expect(r.incomeTax).toBe(130_000);
-    expect(r.localTax).toBe(13_000);
-    expect(r.totalTaxLump).toBe(143_000);
+    expect(r.convertedTax).toBe(1_140_000);
+    expect(r.incomeTax).toBe(95_000);
+    expect(r.localTax).toBe(9_500);
+    expect(r.totalTaxLump).toBe(104_500);
   });
 
-  it("고액·단기: 퇴직금 3억·근속 10년", () => {
+  it("고액·단기: 퇴직금 3억·근속 10년 (REVIEW C-1 실측 케이스)", () => {
     // 공제 500만+200만×5 = 1,500만 → 환산급여 (3억−1,500만)/10×12 = 3.42억
     // 환산급여공제 1.517억 + (3.42억−3억)×35% = 1.664억 → 과세표준 1.756억
-    // 세액 1.756억×38% − 3,706만 = 29,668,000 → ÷12×10 = 24,723,333 (round)
+    // 세액: 3,706만 + (1.756억−1.5억)×38% = 46,788,000 (REVIEW 정답 4,679만)
+    //   교차검증: 표준 누진공제표 방식 1.756억×38% − 1,994만 = 46,788,000 ✓
+    // → ÷12×10 = 38,990,000 + 지방세 3,899,000 = 42,889,000
     const r = computeSeverance(
       { severancePay: 300_000_000, joinDate: "2016-01-01", leaveDate: "2025-12-31" },
       severanceRules,
@@ -119,15 +124,26 @@ describe("computeSeverance — 추가 케이스 (수기 계산 앵커)", () => {
     expect(r.convertedSalary).toBe(342_000_000);
     expect(r.convertedSalaryDeduction).toBe(166_400_000);
     expect(r.taxBase).toBe(175_600_000);
-    expect(r.convertedTax).toBe(29_668_000);
-    expect(r.incomeTax).toBe(24_723_333);
-    expect(r.localTax).toBe(2_472_333);
-    expect(r.totalTaxLump).toBe(27_195_666);
-    expect(r.netLump).toBe(272_804_334);
+    expect(r.convertedTax).toBe(46_788_000);
+    expect(r.incomeTax).toBe(38_990_000);
+    expect(r.localTax).toBe(3_899_000);
+    expect(r.totalTaxLump).toBe(42_889_000);
+    expect(r.netLump).toBe(257_111_000);
 
     const long = r.irpOptions[2];
-    expect(long.totalTax).toBe(13_597_833); // 27,195,666 × 0.5
-    expect(long.saving).toBe(13_597_833);
+    expect(long.totalTax).toBe(21_444_500); // 42,889,000 × 0.5 (round)
+    expect(long.saving).toBe(21_444_500);
+  });
+
+  it("convertedTaxFor — 전 구간 경계에서 누적세액이 연속이다 (구간표 정합성)", () => {
+    // 각 구간 상한에서의 세액 = 다음 구간의 quick 과 정확히 일치해야 한다.
+    // (quick 이 "구간 시작점 누적세액"이라는 해석 자체를 rules 값으로 검증 — REVIEW C-1 재발 방지)
+    const rows = severanceRules.taxBrackets.rows;
+    for (let i = 0; i < rows.length - 1; i++) {
+      const upper = rows[i].max;
+      expect(upper).not.toBeNull();
+      expect(convertedTaxFor(upper as number, severanceRules)).toBe(rows[i + 1].quick);
+    }
   });
 
   it('환산급여가 첫 구간 이내면 "100%" 전액 공제 → 세금 0', () => {

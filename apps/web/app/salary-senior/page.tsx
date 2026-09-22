@@ -195,7 +195,15 @@ export default function SalarySeniorPage() {
         ]}
       />
 
-      <SourceBadge asOf={rules._meta.asOf} source="4대보험 요율 고시·국세청" />
+      {/* 이 도구는 rules 2개(요율·간이세액표)를 쓴다 — 기준일은 둘 중 최신 (ISO 문자열 비교) */}
+      <SourceBadge
+        asOf={
+          simplifiedTaxTable._meta.asOf > rules._meta.asOf
+            ? simplifiedTaxTable._meta.asOf
+            : rules._meta.asOf
+        }
+        source="4대보험 요율 고시·국세청 근로소득 간이세액표"
+      />
     </div>
   );
 }

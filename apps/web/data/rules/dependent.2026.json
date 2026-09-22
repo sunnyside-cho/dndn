@@ -18,7 +18,12 @@
       "unregistered": "미등록자는 연 500만원 이하 허용",
       "rentalIncome": "주택임대소득 있으면 금액 불문 탈락",
       "verified": "official",
-      "source": "별표1의2 1호 가~다목"
+      "source": "별표1의2 1호 가~다목",
+      "unregisteredMax": {
+        "value": 5000000,
+        "verified": "official",
+        "source": "별표1의2 1호 — 미등록자 연 500만 이하 허용 (REVIEW M-1 구조화)"
+      }
     },
     "pensionCounting": "피부양자 판정에는 공적연금 100% 반영 (부과 시 50%와 다름 — 혼동 주의)",
     "coupleRule": "부부 모두 소득요건 충족 필요 (재산은 각자 판정)",
@@ -36,7 +41,12 @@
         "rule": "형제자매는 1.8억 이하 (30세미만/65세이상/장애 등만 해당)"
       },
       "verified": "official",
-      "source": "별표1의2 2호"
+      "source": "별표1의2 2호",
+      "tier2IncomeMax": {
+        "value": 10000000,
+        "verified": "official",
+        "source": "별표1의2 2호 — 5.4억~9억 구간 소득 상한 (REVIEW M-1 구조화)"
+      }
     }
   },
   "regionalPremium": {
@@ -49,7 +59,17 @@
       "full": "이자·배당·사업·기타 100%",
       "half": "근로·연금 50%",
       "verified": "official",
-      "source": "시행규칙 제44조2항"
+      "source": "시행규칙 제44조2항",
+      "halfRate": {
+        "value": 0.5,
+        "verified": "official",
+        "source": "시행규칙 제44조2항 — 근로·연금 50% 반영"
+      },
+      "fullRate": {
+        "value": 1,
+        "verified": "official",
+        "source": "시행규칙 제44조2항 — 이자·배당·사업·기타 100% 반영"
+      }
     },
     "assetBasicDeduction": {
       "value": 100000000,

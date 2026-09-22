@@ -42,9 +42,11 @@ export function computeBasicPension(
 
   // ---- 재산의 소득환산액 (월) ----
   const regionDeduction = r.assetConversion.basicDeduction[input.region].value;
-  // 전월세보증금은 50% 반영 (TOOL_SPEC 5단계)
+  // 임차보증금 × 0.95 (5% 공제 — rules.rentDepositRate. 종전 50%는 스펙 오류, REVIEW C-2)
   const generalAssetNet = Math.max(
-    input.generalAssets + input.rentDeposit * 0.5 - regionDeduction,
+    input.generalAssets +
+      input.rentDeposit * r.assetConversion.rentDepositRate.value -
+      regionDeduction,
     0,
   );
   const financialAssetNet = Math.max(

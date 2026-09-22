@@ -33,7 +33,10 @@ export function nationalPensionPremium(
   return Math.round(clampPensionBase(monthlySalary, rules) * rate);
 }
 
-/** 건강보험 근로자 부담 */
+/**
+ * 건강보험 근로자 부담 — 보수월액 상한(초고소득 예외)은 미적용 근사 (REVIEW_2026-09-22 M-3:
+ * 타겟(재취업 5060)상 영향 미미 판정. 상한 고시값을 rules 에 수록하면 여기서 클램프 추가).
+ */
 export function healthPremium(
   monthlySalary: number,
   rules: InsuranceRules,

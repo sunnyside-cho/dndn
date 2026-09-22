@@ -9,22 +9,15 @@ import { wonKorean } from "@/lib/format";
 
 // F-03 건보 피부양자 자격 체크 엔진 — TOOL_SPEC_dependent-check.md 의 판정 게이트·간이 산식을
 // rules 값으로 구현. 순수함수: 같은 (input, rules) → 같은 result (api-spec 엔진 계약).
-//
-// 예외 상수 3종 — rules 에 "문구"로만 존재하고 구조화 필드가 없어 상수로 둔다
-// (rules 개정 시 아래 문구 필드와 함께 점검 — 완료 보고에 명시된 구조화 갭):
-//   · 미등록 사업소득 허용 상한 500만원 — dependentEligibility.businessIncome.unregistered 문구
-//   · 재산 tier1~tier2 구간의 소득 상한 1,000만원 — dependentEligibility.assetMax.tier2.rule 문구
-//   · 소득 반영률 근로·연금 50% / 그 외 100% — regionalPremium.incomeReflection 문구
-const UNREGISTERED_BIZ_INCOME_MAX = 5_000_000;
-const TIER2_INCOME_MAX = 10_000_000;
-const REFLECT_WORK_PENSION = 0.5;
-const REFLECT_OTHER = 1.0;
+// (종전 상수 3종은 REVIEW_2026-09-22 M-1 에 따라 rules 구조화 필드로 승격됨 — 하드코딩 0)
 
 export function checkDependent(input: DependentInput, rules: DependentRules): DependentResult {
   const e = rules.dependentEligibility;
   const incomeMax = e.incomeMax.value;
   const tier1 = e.assetMax.tier1.value;
   const tier2 = e.assetMax.tier2.value;
+  const UNREGISTERED_BIZ_INCOME_MAX = e.businessIncome.unregisteredMax.value;
+  const TIER2_INCOME_MAX = e.assetMax.tier2IncomeMax.value;
 
   const fails: string[] = [];
   const passes: string[] = [];
@@ -116,8 +109,8 @@ export function estimateRegionalPremium(
   const notes: string[] = [];
 
   const monthlyIncomePart =
-    ((input.annualWorkPensionIncome * REFLECT_WORK_PENSION +
-      input.annualOtherIncome * REFLECT_OTHER) *
+    ((input.annualWorkPensionIncome * rp.incomeReflection.halfRate.value +
+      input.annualOtherIncome * rp.incomeReflection.fullRate.value) *
       rp.healthRate.value) /
     12;
 

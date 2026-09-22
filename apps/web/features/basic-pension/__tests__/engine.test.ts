@@ -90,19 +90,29 @@ describe("computeBasicPension — 경계·자격", () => {
     ).toBe("occupationalExcluded");
   });
 
-  it("부채·보증금 50%·고급차 가산이 재산환산에 반영된다", () => {
+  it("부채·보증금 95%(5% 공제)·고급차 가산이 재산환산에 반영된다 — REVIEW C-2", () => {
     const r = computeBasicPension(
       {
         ...base,
         generalAssets: 100_000_000,
-        rentDeposit: 40_000_000, // 50% → 2,000만
+        rentDeposit: 40_000_000, // × 0.95 → 3,800만 (2026 사업안내 — 종전 50%는 스펙 오류)
         debts: 10_000_000,
         luxuryCarValue: 50_000_000,
       },
       basicPensionRules,
     );
-    // (1억+2천만−8,500만) + 0 − 1천만 = 2,500만 ×4%÷12 = 83,333 + 차 5,000만(100%)
-    expect(r.assetConverted).toBe(Math.round(25_000_000 * 0.04 / 12 + 50_000_000));
+    // (1억+3,800만−8,500만) + 0 − 1천만 = 4,300만 ×4%÷12 = 143,333 + 차 5,000만(100%)
+    expect(r.assetConverted).toBe(Math.round(43_000_000 * 0.04 / 12 + 50_000_000));
+  });
+
+  it("DoD: rentDepositRate 를 바꾼 rules 주입 시 보증금 반영이 그에 따라 바뀐다", () => {
+    const swapped: BasicPensionRules = structuredClone(basicPensionRules);
+    swapped.assetConversion.rentDepositRate.value = 0.5;
+    const input = { ...base, rentDeposit: 200_000_000 };
+    // 0.95: 1.9억 − 8,500만 = 1.05억 ×4%÷12 = 350,000
+    expect(computeBasicPension(input, basicPensionRules).assetConverted).toBe(350_000);
+    // 0.5: 1.0억 − 8,500만 = 1,500만 ×4%÷12 = 50,000
+    expect(computeBasicPension(input, swapped).assetConverted).toBe(50_000);
   });
 });
 

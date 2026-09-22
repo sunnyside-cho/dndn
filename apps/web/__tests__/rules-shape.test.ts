@@ -67,7 +67,36 @@ describe("rules 파일 구조 계약 (db-schema.md)", () => {
     expect(nextYearRates.longTermCareFormula).toBeNull(); // 미발표 — 추측 금지
   });
 
-  it("간이세액표: 미수록이면 rows 빈 배열 (소득세 단정 금지 신호)", () => {
-    expect(Array.isArray(simplifiedTaxTable.rows)).toBe(true);
+  it("간이세액표: 수록본 무결성 — 행마다 11인 컬럼, min<max, min 오름차순·빈틈 없음", () => {
+    const rows = simplifiedTaxTable.rows;
+    expect(rows.length).toBeGreaterThan(0); // 2026-09-22 국세청 공식 엑셀 변환본 수록
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      expect(r.byDependents, `row ${i}`).toHaveLength(11);
+      if (r.max !== null) expect(r.max, `row ${i}`).toBeGreaterThan(r.min);
+      // 구간 연속성: 다음 행 min = 이번 행 max ([min, max) 규약 — 빈틈이 있으면 lookup 누락)
+      if (i > 0) expect(r.min, `row ${i}`).toBe(rows[i - 1].max);
+    }
+  });
+
+  it("REVIEW_2026-09-22 구조화 필드 — 하드코딩 승격분이 rules 에 존재한다", () => {
+    // C-2: 임차보증금 95% (5% 공제)
+    expect(basicPensionRules.assetConversion.rentDepositRate.value).toBe(0.95);
+    // M-1: 피부양자 상수 3종 + 지방소득세율
+    expect(dependentRules.dependentEligibility.businessIncome.unregisteredMax.value).toBe(5_000_000);
+    expect(dependentRules.dependentEligibility.assetMax.tier2IncomeMax.value).toBe(10_000_000);
+    expect(dependentRules.regionalPremium.incomeReflection.halfRate.value).toBe(0.5);
+    expect(dependentRules.regionalPremium.incomeReflection.fullRate.value).toBe(1.0);
+    expect(insuranceRules.incomeTax?.localTaxRate.value).toBe(0.1);
+  });
+
+  it("C-1: 퇴직세 quick 은 구간 시작점 누적세액 — 인접 구간과 정합해야 한다", () => {
+    // quick[i+1] == quick[i] + (max[i] − max[i−1]) × rate[i] — rules 값 자체의 무결성 검증
+    const rows = severanceRules.taxBrackets.rows;
+    for (let i = 0; i < rows.length - 1; i++) {
+      const prevMax = i > 0 ? (rows[i - 1].max as number) : 0;
+      const expected = rows[i].quick + ((rows[i].max as number) - prevMax) * rows[i].rate;
+      expect(rows[i + 1].quick, `구간 ${i + 1}`).toBe(expected);
+    }
   });
 });

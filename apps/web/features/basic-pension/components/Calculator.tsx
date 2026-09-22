@@ -248,7 +248,7 @@ export function BasicPensionCalculator() {
           />
           <MoneyField
             label="전월세 보증금"
-            help="절반(50%)만 재산으로 계산돼요."
+            help="5%를 뺀 95%가 재산으로 계산돼요."
             error={errors.rentDeposit?.message}
             onNone={() => setValue("rentDeposit", 0)}
             inputProps={register("rentDeposit")}

@@ -170,7 +170,7 @@ export default function SeveranceTaxPage() {
             <tr>
               <th>과세표준</th>
               <th className="num">세율</th>
-              <th className="num">누진공제</th>
+              <th className="num">구간 시작점까지의 세액</th>
             </tr>
           </thead>
           <tbody>

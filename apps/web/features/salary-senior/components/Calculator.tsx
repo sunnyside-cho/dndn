@@ -132,14 +132,22 @@ function ResultView({
   onRestart: () => void;
 }) {
   const r = result;
-  // 표 미수록 상태에서는 "실수령액"으로 단정하지 않는다 — 소득세 반영 전임을 헤드라인에 명시.
+  // 표 미수록 상태에서는 헤드라인이 "공제액" — 큰 숫자가 실수령액으로 읽히는 과대 표시를
+  // 피한다 (REVIEW_2026-09-22 M-2). 표 수록 후에만 실수령액을 헤드라인으로 승격.
   const headline = taxPending
-    ? `4대보험 공제 후 월 ${won(r.net)} — 소득세 반영 전`
+    ? `4대보험으로 매달 ${won(r.totalDeduction)} 공제돼요`
     : `예상 실수령액 — 월 ${won(r.net)}`;
 
   return (
     <div>
       <ResultCard tool="salary-senior" headline={headline}>
+        {taxPending ? (
+          <p className="t-body-l mt-3 mb-0">
+            소득세·지방소득세를 빼기 전 금액은 월 <strong>{won(r.net)}</strong>이에요.{" "}
+            <strong>실제 실수령액은 여기서 소득세만큼 더 적어요</strong> — 간이세액표 수록
+            전이라 소득세는 아직 계산하지 못했어요.
+          </p>
+        ) : null}
         <table className="table mt-4">
           <tbody>
             <tr>

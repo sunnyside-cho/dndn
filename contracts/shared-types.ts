@@ -22,11 +22,15 @@ export interface SourcedValue<T = number> {
 
 export interface RulesMeta {
   year: number;
-  status: "draft" | "confirmed";
+  status: "draft" | "confirmed" | "final";
   /** 화면 SourceBadge 에 노출되는 기준일 (YYYY-MM-DD) */
   asOf: string;
+  /** 제도 적용 시작일 (예: 간이세액표 2026-03-01 지급분부터) */
+  appliedFrom?: string;
   note?: string;
   law?: string;
+  source?: string;
+  unit?: string;
   primarySources?: Record<string, string>;
 }
 
@@ -55,6 +59,8 @@ export interface BasicPensionRules {
     basicDeduction: { metro: SourcedValue; city: SourcedValue; rural: SourcedValue };
     financialDeduction: SourcedValue;
     conversionRateAnnual: SourcedValue;
+    /** 임차보증금 반영률 (0.95 = 5% 공제 — REVIEW_2026-09-22 C-2. 종전 50%는 스펙 오류) */
+    rentDepositRate: SourcedValue;
     luxuryCarPriceMin: SourcedValue;
     membershipFullAdd: SourcedValue<boolean>;
   };
@@ -88,6 +94,8 @@ export interface SeveranceRules {
   taxBrackets: {
     verified?: Verified;
     source?: string;
+    /** quick = **구간 시작점까지의 누적세액** (누진공제액 아님 — REVIEW_2026-09-22 C-1).
+     *  세액 = quick + (과세표준 − 직전 구간 max) × rate. 경계 정합성은 엔진 테스트가 검증. */
     rows: Array<{ max: number | null; rate: number; quick: number }>;
     finalStep?: string;
   };
@@ -116,6 +124,8 @@ export interface DependentRules {
       registered: string;
       unregistered: string;
       rentalIncome: string;
+      /** 미등록자 사업소득 허용 상한 (연, 원 — REVIEW M-1 구조화) */
+      unregisteredMax: SourcedValue;
       verified?: Verified;
       source?: string;
     };
@@ -124,6 +134,8 @@ export interface DependentRules {
     assetMax: {
       tier1: { value: number; rule: string };
       tier2: { value: number; rule: string };
+      /** tier1~tier2 구간에서 허용되는 연소득 상한 (원 — REVIEW M-1 구조화) */
+      tier2IncomeMax: SourcedValue;
       sibling?: { value: number; rule: string };
       verified?: Verified;
       source?: string;
@@ -131,7 +143,15 @@ export interface DependentRules {
   };
   regionalPremium: {
     healthRate: SourcedValue;
-    incomeReflection: { full: string; half: string; verified?: Verified; source?: string };
+    incomeReflection: {
+      full: string;
+      half: string;
+      /** 근로·연금 반영률 (0.5) / 그 외 반영률 (1.0) — REVIEW M-1 구조화 */
+      halfRate: SourcedValue;
+      fullRate: SourcedValue;
+      verified?: Verified;
+      source?: string;
+    };
     assetBasicDeduction: SourcedValue;
     assetPointPrice: SourcedValue;
     /** 60등급 재산점수표 — [상한(원, null=무한), 점수] 오름차순. 미수록 시 보험료 추정 생략 */
@@ -178,6 +198,8 @@ export interface InsuranceRules {
     method: string;
     tableSource?: string;
     tableVersion?: { note?: string; verified?: Verified };
+    /** 지방소득세율 (소득세 대비 — REVIEW M-1 구조화) */
+    localTaxRate: SourcedValue;
   };
   verifyAgainst?: string;
 }

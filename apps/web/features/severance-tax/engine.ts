@@ -86,6 +86,21 @@ function convertedSalaryDeductionFor(convertedSalary: number, rules: SeveranceRu
   return parsed.base + ((convertedSalary - prevMax) * parsed.ratePct) / 100;
 }
 
+/**
+ * 기본세율 세액 — rules.taxBrackets 의 quick 은 **구간 시작점까지의 누적세액**이다
+ * (누진공제액이 아님 — REVIEW_2026-09-22 C-1). 세액 = quick + (과세표준 − 직전 구간 max) × rate.
+ * 경계 정합성(각 구간 상한 세액 = 다음 quick)은 엔진 테스트가 rules 값으로 검증한다.
+ */
+export function convertedTaxFor(taxBase: number, rules: SeveranceRules): number {
+  const rows = rules.taxBrackets.rows;
+  const i = rows.findIndex((r) => r.max === null || taxBase <= r.max);
+  if (i < 0) throw new Error(`과세표준 ${taxBase}에 해당하는 세율 구간이 없습니다`);
+  const prevMax = i > 0 ? rows[i - 1].max : 0;
+  if (prevMax === null)
+    throw new Error("세율 구간 순서가 잘못되었습니다 (max=null 은 마지막 구간이어야 함)");
+  return Math.round(rows[i].quick + (taxBase - prevMax) * rows[i].rate);
+}
+
 /** IrpOption.label — rows 의 yearsMax 로 조립 ("10년 이하"/"10~20년"/"20년 초과"). 리터럴 금지. */
 function irpLabelFor(
   rows: SeveranceRules["irp"]["pensionDiscount"]["rows"],
@@ -120,10 +135,8 @@ export function computeSeverance(input: SeveranceInput, rules: SeveranceRules): 
   );
   const taxBase = Math.max(convertedSalary - convertedSalaryDeduction, 0);
 
-  // 5) 기본세율 (과세표준 × rate − 누진공제) = 환산산출세액
-  const row = rules.taxBrackets.rows.find((r) => r.max === null || taxBase <= r.max);
-  if (!row) throw new Error(`과세표준 ${taxBase}에 해당하는 세율 구간이 없습니다`);
-  const convertedTax = Math.round(taxBase * row.rate - row.quick);
+  // 5) 기본세율 → 환산산출세액 (quick = 구간 시작점 누적세액 — convertedTaxFor 참조)
+  const convertedTax = convertedTaxFor(taxBase, rules);
 
   // 6) 퇴직소득세 = 환산산출세액 ÷ 12 × 근속연수 (finalStep) · 지방소득세 = × localTaxRate
   const incomeTax = Math.round((convertedTax / 12) * serviceYears);

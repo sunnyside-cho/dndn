@@ -1,27 +1,86 @@
 {
-  "_meta": {"year": 2026, "status": "draft", "asOf": "2026-09-21",
-    "note": "4대보험 근로자 부담 요율. 미검증: 간이세액표 2026.3 개정 국세청 원문, 임의계속가입 공제 구조"},
+  "_meta": {
+    "year": 2026,
+    "status": "draft",
+    "asOf": "2026-09-21",
+    "note": "4대보험 근로자 부담 요율. 미검증: 간이세액표 2026.3 개정 국세청 원문, 임의계속가입 공제 구조"
+  },
   "nationalPension": {
-    "rateTotal": {"value": 0.095, "note": "2026부터 연금개혁 인상 시작 (매년 +0.5%p, 2033년 13%)", "verified": "official", "source": "korea.kr 148957270"},
-    "rateEmployee": {"value": 0.0475},
-    "baseMonthly": {"until_2026_06": {"min": 400000, "max": 6370000}, "from_2026_07": {"min": 410000, "max": 6590000}, "verified": "official", "source": "NPS 공지"},
-    "age60Exempt": {"value": true, "note": "60세 이상 사업장가입 제외 → 공제 0 (임의계속가입은 옵션, 기본 OFF)", "verified": "official"},
-    "next2027": {"value": 0.10, "note": "법률상 확정"}
+    "rateTotal": {
+      "value": 0.095,
+      "note": "2026부터 연금개혁 인상 시작 (매년 +0.5%p, 2033년 13%)",
+      "verified": "official",
+      "source": "korea.kr 148957270"
+    },
+    "rateEmployee": {
+      "value": 0.0475
+    },
+    "baseMonthly": {
+      "until_2026_06": {
+        "min": 400000,
+        "max": 6370000
+      },
+      "from_2026_07": {
+        "min": 410000,
+        "max": 6590000
+      },
+      "verified": "official",
+      "source": "NPS 공지"
+    },
+    "age60Exempt": {
+      "value": true,
+      "note": "60세 이상 사업장가입 제외 → 공제 0 (임의계속가입은 옵션, 기본 OFF)",
+      "verified": "official"
+    },
+    "next2027": {
+      "value": 0.1,
+      "note": "법률상 확정"
+    }
   },
   "healthInsurance": {
-    "rateEmployee": {"value": 0.03595, "note": "총 7.19%의 절반. 2027 동결 기결정", "verified": "official", "source": "건보공단 EDI"},
-    "longTermCare": {"formula": "건강보험료 본인부담분 × 0.9448/7.19", "verified": "official"},
-    "next2027": {"value": 0.03595, "note": "7.19% 동결 기결정 (총요율의 절반)", "verified": "official", "source": "시행령 제44조1항 — 2026·2027 동결 기결정"}
+    "rateEmployee": {
+      "value": 0.03595,
+      "note": "총 7.19%의 절반. 2027 동결 기결정",
+      "verified": "official",
+      "source": "건보공단 EDI"
+    },
+    "longTermCare": {
+      "formula": "건강보험료 본인부담분 × 0.9448/7.19",
+      "verified": "official"
+    },
+    "next2027": {
+      "value": 0.03595,
+      "note": "7.19% 동결 기결정 (총요율의 절반)",
+      "verified": "official",
+      "source": "시행령 제44조1항 — 2026·2027 동결 기결정"
+    }
   },
   "employmentInsurance": {
-    "rateEmployee": {"value": 0.009, "verified": "official"},
-    "pending2027": {"note": "2.0%(근로자 1.0%) 인상안 심의 중 — 12월 모니터링 항목", "verified": "check"}
+    "rateEmployee": {
+      "value": 0.009,
+      "verified": "official"
+    },
+    "pending2027": {
+      "note": "2.0%(근로자 1.0%) 인상안 심의 중 — 12월 모니터링 항목",
+      "verified": "check"
+    }
   },
-  "industrialAccident": {"rateEmployee": 0, "verified": "official"},
+  "industrialAccident": {
+    "rateEmployee": 0,
+    "verified": "official"
+  },
   "incomeTax": {
     "method": "근로소득 간이세액표 구간 데이터 내장 (수식 아님) + 지방소득세 10%",
     "tableSource": "https://www.nts.go.kr/nts/cm/cntnts/cntntsView.do?mi=6583&cntntsId=7862",
-    "tableVersion": {"note": "2026.3 지급분부터 개정판 적용 — 국세청 원문 재확인 필요", "verified": "check"}
+    "tableVersion": {
+      "note": "2026.3 지급분부터 개정판 적용 — 국세청 원문 재확인 필요",
+      "verified": "check"
+    },
+    "localTaxRate": {
+      "value": 0.1,
+      "verified": "check",
+      "note": "지방소득세 10% — 지방세법 조문 확인 전 (severance rules와 동일 값, REVIEW M-1 구조화)"
+    }
   },
   "verifyAgainst": "https://www.4insure.or.kr 4대보험료 모의계산"
 }
