@@ -84,10 +84,44 @@ describe("computeBasicPension — 경계·자격", () => {
     expect(r.estimatedMonthly).toBeNull();
   });
 
-  it("65세 미만 → ageNotYet / 직역연금 → occupationalExcluded", () => {
-    expect(computeBasicPension({ ...base, birthYear: 1965 }, basicPensionRules).verdict).toBe("ageNotYet");
+  it("65세 미만 → preview: 종료하지 않고 끝까지 계산한다 (V-1 예비 계산 모드)", () => {
+    // 예시1과 동일 입력·1965년생(활성연도 기준 61세) → 계산값은 동일, verdict 만 preview
+    const r = computeBasicPension(
+      {
+        ...base,
+        birthYear: 1965,
+        laborIncomeSelf: 1_500_000,
+        generalAssets: 120_000_000,
+        financialAssets: 30_000_000,
+      },
+      basicPensionRules,
+    );
+    expect(r.verdict).toBe("preview");
+    expect(r.recognizedIncome).toBe(388_000);
+    expect(r.estimatedMonthly).toBe(349_700);
+  });
+
+  it("preview 에서도 기준 초과면 지급액 null — 결과 프레임 분기의 근거", () => {
+    const r = computeBasicPension(
+      { ...base, birthYear: 1965, otherIncomeMonthly: 2_500_000 },
+      basicPensionRules,
+    );
+    expect(r.verdict).toBe("preview");
+    expect(r.estimatedMonthly).toBeNull();
+  });
+
+  it("65세 경계(활성연도−출생연도=65)는 preview 가 아니다 / 직역연금은 나이 무관 제외", () => {
     expect(
-      computeBasicPension({ ...base, hasOccupationalPension: true }, basicPensionRules).verdict,
+      computeBasicPension(
+        { ...base, birthYear: basicPensionRules._meta.year - 65 },
+        basicPensionRules,
+      ).verdict,
+    ).toBe("eligible");
+    expect(
+      computeBasicPension(
+        { ...base, birthYear: 1965, hasOccupationalPension: true },
+        basicPensionRules,
+      ).verdict,
     ).toBe("occupationalExcluded");
   });
 

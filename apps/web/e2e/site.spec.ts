@@ -45,6 +45,38 @@ test("기초연금 위저드: 예시1 입력 → 전액 349,700원 결과", asyn
   await expect(page.getByText(/기준일 2026-09-21/)).toBeVisible();
 });
 
+test("기초연금 예비 계산 모드: 65세 미만(1968년생)도 끝까지 계산 — 가정 프레임 + 도달연도 배지 (V-1)", async ({
+  page,
+}) => {
+  await page.goto("/basic-pension/");
+
+  // 0. 1968년생(2026 기준 58세) — 종료되지 않고 다음 단계로 진행돼야 한다
+  await page.getByLabel("출생연도").fill("1968");
+  await page.getByRole("radio", { name: /아니요/ }).click();
+  await page.getByRole("button", { name: "다음" }).click();
+
+  // 1~6. 예시1과 동일 입력
+  await page.getByRole("radio", { name: /혼자예요/ }).click();
+  await page.getByRole("button", { name: "다음" }).click();
+  await page.getByRole("radio", { name: /중소도시/ }).click();
+  await page.getByRole("button", { name: "다음" }).click();
+  await page.getByLabel("근로소득 (월)").fill("150");
+  await page.getByRole("button", { name: "다음" }).click();
+  await page.getByRole("button", { name: "다음" }).click();
+  await page.getByLabel("집·땅 등 재산 (시가표준액)").fill("12000");
+  await page.getByLabel("예금 등 금융재산").fill("3000");
+  await page.getByRole("button", { name: "다음" }).click();
+  await page.getByRole("button", { name: "결과 보기" }).click();
+
+  // 결과: "지금 65세 가정" 헤드라인 (금액 앵커 동일) + 1968+65=2033년 도달 배지 (D-7년)
+  await expect(page.getByText(/지금 만 65세라고 가정하면/).first()).toBeVisible();
+  await expect(page.getByText(/월 349,700원 수준/).first()).toBeVisible();
+  await expect(page.getByText(/2033년.*만 65세가 돼요/).first()).toBeVisible();
+  await expect(page.getByText(/D-7년/).first()).toBeVisible();
+  // 미래 금액 단정 금지 — 신청 안내(주민센터) 대신 재방문 고리가 보인다
+  await expect(page.getByText(/2033년에 다시 계산해 보세요/)).toBeVisible();
+});
+
 test("가이드 글: JS 꺼도 본문이 읽힌다 (DoD)", async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();

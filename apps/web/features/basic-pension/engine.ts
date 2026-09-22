@@ -96,11 +96,15 @@ export function computeBasicPension(
   if (input.hasOccupationalPension) {
     return { verdict: "occupationalExcluded", estimatedMonthly: null, incomeReversalApplied: false, ...common };
   }
-  if (r._meta.year - input.birthYear < r.eligibility.ageMin) {
-    return { verdict: "ageNotYet", estimatedMonthly: null, incomeReversalApplied: false, ...common };
-  }
+  // 65세 미만은 종료하지 않고 "지금 65세라 가정" 예비 계산 (V-1) — 계산은 동일, verdict 만 preview
+  const preview = r._meta.year - input.birthYear < r.eligibility.ageMin;
   if (recognizedIncome > criterion) {
-    return { verdict: "notEligible", estimatedMonthly: null, incomeReversalApplied: false, ...common };
+    return {
+      verdict: preview ? "preview" : "notEligible",
+      estimatedMonthly: null,
+      incomeReversalApplied: false,
+      ...common,
+    };
   }
 
   // ---- 지급액: 기준연금액 → (부부 모두 수급 시 각 20% 감액) → 소득역전방지 (최저 = ×10%) ----
@@ -113,7 +117,7 @@ export function computeBasicPension(
   const estimated = Math.max(Math.min(afterCouple, reversalCap), floor);
 
   return {
-    verdict: "eligible",
+    verdict: preview ? "preview" : "eligible",
     estimatedMonthly: Math.round(estimated),
     incomeReversalApplied: reversalCap < afterCouple,
     ...common,

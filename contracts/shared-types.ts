@@ -44,6 +44,8 @@ export interface RulesMeta {
 export interface BasicPensionRules {
   _meta: RulesMeta;
   selectionCriteria: { single: SourcedValue; couple: SourcedValue };
+  /** 직전 연도 선정기준액 — 예비 계산 모드(V-1)의 "기준 상승 추이" 문구 원천 (하드코딩 금지) */
+  selectionCriteriaPrior: { year: number; single: SourcedValue; couple: SourcedValue };
   basePension: {
     monthlyMax: SourcedValue;
     coupleReductionRate: SourcedValue;
@@ -264,7 +266,7 @@ export interface BasicPensionInput {
 export type BasicPensionVerdict =
   | "eligible"          // 수급 가능성 높음
   | "notEligible"       // 선정기준액 초과
-  | "ageNotYet"         // 65세 미만
+  | "preview"           // 65세 미만 예비 계산 — 계산은 동일, 프레임만 분기 (V-1. 기준 초과 여부는 estimatedMonthly null 로 구분)
   | "occupationalExcluded"; // 직역연금 제외
 
 export interface BasicPensionResult {

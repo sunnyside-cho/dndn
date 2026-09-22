@@ -20,7 +20,8 @@ import {
 } from "../schema";
 
 const TOTAL_STEPS = 7;
-type Terminal = "ageNotYet" | "occupational" | null;
+// 65세 미만은 종료하지 않는다 — 예비 계산 모드(V-1)로 끝까지 진행. 종료는 직역연금뿐.
+type Terminal = "occupational" | null;
 
 export function BasicPensionCalculator() {
   const [step, setStep] = useState(0);
@@ -72,15 +73,6 @@ export function BasicPensionCalculator() {
   };
 
   // ---- 종료 화면 (문답 0단계 분기 — TOOL_SPEC) ----
-  if (terminal === "ageNotYet") {
-    return (
-      <TerminalNotice
-        title="아직 신청 시기가 아니에요"
-        body={`기초연금은 만 ${rules.eligibility.ageMin}세부터 받을 수 있어요. 만 ${rules.eligibility.ageMin}세 생일이 있는 달의 한 달 전부터 신청할 수 있으니, 그때 다시 계산해 보세요.`}
-        onRestart={restart}
-      />
-    );
-  }
   if (terminal === "occupational") {
     return (
       <TerminalNotice
@@ -100,6 +92,7 @@ export function BasicPensionCalculator() {
         onRestart={restart}
         couple={couple}
         twoRecipients={couple && spouseEligible}
+        birthYear={Number(getValues("birthYear"))}
       />
     );
   }
@@ -115,8 +108,6 @@ export function BasicPensionCalculator() {
           onNext={() =>
             next(["birthYear", "occupational"], () => {
               if (getValues("occupational") === "yes") setTerminal("occupational");
-              else if (rules._meta.year - Number(getValues("birthYear")) < rules.eligibility.ageMin)
-                setTerminal("ageNotYet");
               else setStep(1);
             })
           }
@@ -374,22 +365,60 @@ function ResultView({
   result,
   couple,
   twoRecipients,
+  birthYear,
   onRestart,
 }: {
   result: BasicPensionResult;
   couple: boolean;
   twoRecipients: boolean;
+  birthYear: number;
   onRestart: () => void;
 }) {
   const r = result;
-  const headline =
-    r.verdict === "eligible"
+  const rules = basicPensionRules;
+  const ageMin = rules.eligibility.ageMin;
+  const year = rules._meta.year;
+
+  // 예비 계산 모드 (V-1): 65세 미만 — "지금 65세 가정" 프레임 + 도달연도 배지. 미래 금액 예측 금지.
+  const preview = r.verdict === "preview";
+  const reachYear = birthYear + ageMin;
+  const prior = rules.selectionCriteriaPrior;
+  const priorCriterion = (couple ? prior.couple : prior.single).value;
+
+  const overBy = `소득인정액이 기준보다 ${won(r.recognizedIncome - r.criterion)} 많아요`;
+  const headline = preview
+    ? r.estimatedMonthly !== null
+      ? `지금 만 ${ageMin}세라고 가정하면, ${year}년 기준으로 ${twoRecipients ? "부부 합산 " : ""}월 ${won(r.estimatedMonthly)} 수준이에요`
+      : `지금 만 ${ageMin}세라고 가정해도 기준을 넘어요 — ${overBy}`
+    : r.verdict === "eligible"
       ? `받으실 가능성이 높아요 — 예상 ${twoRecipients ? "부부 합산 " : ""}월 ${won(r.estimatedMonthly ?? 0)}`
-      : `아쉽지만 기준을 넘어요 — 소득인정액이 기준보다 ${won(r.recognizedIncome - r.criterion)} 많아요`;
+      : `아쉽지만 기준을 넘어요 — ${overBy}`;
+
+  const npsNote =
+    r.npsLink === "mayReduce" ? (
+      <p className="t-body-l">
+        국민연금을 월{" "}
+        {wonKorean(rules.basePension.monthlyMax.value * rules.npsLink.fullPaymentThresholdRate.value)}{" "}
+        넘게 받고 계셔서 <strong>연계 감액이 있을 수 있어요</strong>. 정확한 금액은
+        국민연금공단(1355)에서 확인해 주세요.
+      </p>
+    ) : null;
+
+  const reversalNote = r.incomeReversalApplied ? (
+    <p className="t-body-l">
+      소득이 기준에 가까워서 <strong>일부 금액만</strong> 받게 계산됐어요 (소득역전방지 감액).
+    </p>
+  ) : null;
 
   return (
     <div>
       <ResultCard tool="basic-pension" headline={headline}>
+        {preview ? (
+          <p className="t-body-l mb-0 mt-1">
+            {birthYear}년생은 <strong>{reachYear}년</strong>에 만 {ageMin}세가 돼요 (D-
+            {reachYear - year}년)
+          </p>
+        ) : null}
         <details className="mt-4">
           <summary className="t-h4 min-h-12 cursor-pointer py-2">계산 근거 보기</summary>
           <table className="table mt-2">
@@ -431,27 +460,39 @@ function ResultView({
         </details>
       </ResultCard>
 
-      {/* 해석 (TOOL_SPEC 결과 3) */}
+      {/* 해석 (TOOL_SPEC 결과 3 · 예비 계산 모드 v1.1) */}
       <div className="mt-6">
-        {r.verdict === "eligible" ? (
+        {preview ? (
+          <>
+            <p className="t-body-l">
+              미래의 선정기준액·기준연금액은 해마다 새로 정해져요. 그래서 이 결과는{" "}
+              <strong>지금 만 {ageMin}세라고 가정</strong>한 {year}년 기준 모의계산이에요 —{" "}
+              {reachYear}년에 받을 금액을 미리 알려 드리는 건 아니에요.
+            </p>
+            <p className="t-body-l">
+              선정기준액은 매년 오르는 추세예요 ({couple ? "부부" : "단독"} 가구 {prior.year}년{" "}
+              {wonKorean(priorCriterion)} → {year}년 {wonKorean(r.criterion)}). 실제 기준은 그해에
+              다시 확인하세요.
+            </p>
+            {npsNote}
+            {reversalNote}
+            <p className="t-body-l">
+              <strong>
+                만 {ageMin}세가 되는 {reachYear}년에 다시 계산해 보세요.
+              </strong>{" "}
+              신청은 만 {ageMin}세 생일이 있는 달의 한 달 전부터 할 수 있어요.
+            </p>
+            {/* F-14 재방문 고리: 카카오톡 채널 버튼 — 12월 채널 개설 전까지 미노출 */}
+          </>
+        ) : r.verdict === "eligible" ? (
           <>
             <p className="t-body-l">
               신청은 <strong>주소지 주민센터</strong> 또는{" "}
-              <strong>복지로(bokjiro.go.kr)</strong>에서 할 수 있어요. 만 65세 생일이 있는 달의
-              한 달 전부터 신청 가능해요.
+              <strong>복지로(bokjiro.go.kr)</strong>에서 할 수 있어요. 만 {ageMin}세 생일이 있는
+              달의 한 달 전부터 신청 가능해요.
             </p>
-            {r.npsLink === "mayReduce" ? (
-              <p className="t-body-l">
-                국민연금을 월 52만원 넘게 받고 계셔서 <strong>연계 감액이 있을 수
-                있어요</strong>. 정확한 금액은 국민연금공단(1355)에서 확인해 주세요.
-              </p>
-            ) : null}
-            {r.incomeReversalApplied ? (
-              <p className="t-body-l">
-                소득이 기준에 가까워서 <strong>일부 금액만</strong> 받게 계산됐어요 (소득역전방지
-                감액).
-              </p>
-            ) : null}
+            {npsNote}
+            {reversalNote}
           </>
         ) : (
           <p className="t-body-l">

@@ -97,6 +97,16 @@ describe("rules 파일 구조 계약 (db-schema.md)", () => {
     expect(basicPensionRules.assetConversion.rentDepositRate.verified).toBe("official");
   });
 
+  it("V-1 예비 계산 모드 — 전년도 선정기준액(기준 상승 추이 문구의 원천)이 rules 에 있다", () => {
+    const prior = basicPensionRules.selectionCriteriaPrior;
+    expect(prior.year).toBe(ACTIVE_YEAR - 1);
+    expect(prior.single.verified).toBe("official");
+    // "매년 오르는 추세" 카피의 전제 — 이 단언이 깨지면 화면 문구도 함께 바꿔야 한다
+    expect(prior.single.value).toBeGreaterThan(0);
+    expect(prior.single.value).toBeLessThan(basicPensionRules.selectionCriteria.single.value);
+    expect(prior.couple.value).toBeLessThan(basicPensionRules.selectionCriteria.couple.value);
+  });
+
   it("간이세액표 overflow: 구간 연속 + fixed 누적 정합 (산식 해석을 데이터로 검증 — C-1 교훈)", () => {
     const o = simplifiedTaxTable.overflow;
     expect(o).toBeDefined();

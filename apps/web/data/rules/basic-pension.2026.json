@@ -23,6 +23,20 @@
       "source": "고시 제2조"
     }
   },
+  "selectionCriteriaPrior": {
+    "year": 2025,
+    "single": {
+      "value": 2280000,
+      "verified": "official",
+      "source": "보건복지부 보도자료 (2024-12, korea.kr newsId=156668580) — 2025년도 선정기준액"
+    },
+    "couple": {
+      "value": 3648000,
+      "verified": "official",
+      "source": "보건복지부 보도자료 (2024-12, korea.kr newsId=156668580) — 2025년도 선정기준액"
+    },
+    "note": "예비 계산 모드(V-1) '기준 상승 추이' 문구 원천 — 연도 갱신 시 직전 연도 값으로 교체"
+  },
   "basePension": {
     "monthlyMax": {
       "value": 349700,
