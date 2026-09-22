@@ -56,21 +56,35 @@ export function computeSalarySenior(
       `소득세·지방소득세는 근로소득 간이세액표 수록 전이라 계산에서 제외했어요 — 홈택스 조견표(${hometax})에서 확인할 수 있어요`,
     );
   } else {
+    const localTaxRate = rules.incomeTax?.localTaxRate.value;
+    if (localTaxRate === undefined)
+      throw new Error("insurance rules: incomeTax.localTaxRate 누락 (지방소득세율)");
+    const depIdx = Math.min(input.dependents, 11) - 1;
     const row = taxTable.rows.find(
       (r) => gross >= r.min && (r.max === null || gross < r.max),
     );
+    const o = taxTable.overflow;
     if (row) {
-      const localTaxRate = rules.incomeTax?.localTaxRate.value;
-      if (localTaxRate === undefined)
-        throw new Error("insurance rules: incomeTax.localTaxRate 누락 (지방소득세율)");
-      incomeTax = row.byDependents[Math.min(input.dependents, 11) - 1] ?? 0;
-      localTax = Math.round(incomeTax * localTaxRate);
+      incomeTax = row.byDependents[depIdx] ?? 0;
+    } else if (o && gross >= o.baseAt) {
+      // 표 상단 초과 — 국세청 표 하단 산식 (tiers 는 "min 초과 ~ max 이하" 규약)
+      const base = o.baseByDependents[depIdx] ?? 0;
+      if (gross === o.baseAt) {
+        incomeTax = base;
+      } else {
+        const tier = o.tiers.find((t) => gross > t.min && (t.max === null || gross <= t.max));
+        if (!tier) throw new Error(`간이세액표 초과 구간을 찾을 수 없습니다 (월급 ${gross})`);
+        const excess = gross - tier.min;
+        incomeTax =
+          base + tier.fixed + Math.round(excess * (tier.applyRate98 ? 0.98 : 1) * tier.rate);
+      }
     } else {
-      // 표 범위 밖(예: 월 1,000만원 초과)은 국세청 산식 구간 — 0 으로 조용히 두지 않는다.
+      // 표 범위 밖인데 초과 산식 데이터도 없다 — 0 으로 조용히 두지 않는다.
       notes.push(
         "월급이 간이세액표 구간을 벗어나 소득세를 계산하지 못했어요 — 홈택스 조견표에서 확인해 주세요",
       );
     }
+    localTax = Math.round(incomeTax * localTaxRate);
   }
 
   const totalDeduction =

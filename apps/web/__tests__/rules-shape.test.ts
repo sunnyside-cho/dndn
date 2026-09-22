@@ -90,6 +90,23 @@ describe("rules 파일 구조 계약 (db-schema.md)", () => {
     expect(insuranceRules.incomeTax?.localTaxRate.value).toBe(0.1);
   });
 
+  it("간이세액표 overflow: 구간 연속 + fixed 누적 정합 (산식 해석을 데이터로 검증 — C-1 교훈)", () => {
+    const o = simplifiedTaxTable.overflow;
+    expect(o).toBeDefined();
+    if (!o) return;
+    expect(o.baseByDependents).toHaveLength(11);
+    expect(o.tiers[0].min).toBe(o.baseAt);
+    expect(o.tiers[o.tiers.length - 1].max).toBeNull();
+    for (let i = 0; i < o.tiers.length - 1; i++) {
+      const t = o.tiers[i];
+      expect(o.tiers[i + 1].min, `tier ${i + 1} 연속성`).toBe(t.max);
+      // fixed[i+1] = fixed[i] + 구간폭 × (98%) × rate — 국세청 산식의 누적 구조가 데이터와 일치해야 함
+      const span = (t.max as number) - t.min;
+      const expected = t.fixed + Math.round(span * (t.applyRate98 ? 0.98 : 1) * t.rate);
+      expect(o.tiers[i + 1].fixed, `tier ${i + 1} fixed 정합`).toBe(expected);
+    }
+  });
+
   it("C-1: 퇴직세 quick 은 구간 시작점 누적세액 — 인접 구간과 정합해야 한다", () => {
     // quick[i+1] == quick[i] + (max[i] − max[i−1]) × rate[i] — rules 값 자체의 무결성 검증
     const rows = severanceRules.taxBrackets.rows;

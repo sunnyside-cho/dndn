@@ -56,11 +56,54 @@ describe("computeSalarySenior — 앵커 (수기 계산값 + 국세청 표 대�
     expect(joined).toContain("nts.go.kr");
   });
 
-  it("표 구간 초과(월 1,200만): 소득세 0 으로 조용히 두지 않고 안내한다", () => {
+  it("정확히 월 1,000만: 표의 '10,000천원인 경우' 세액 그대로 (1인 1,507,400)", () => {
+    const r = computeSalarySenior(
+      { age: 58, monthlySalary: 10_000_000, dependents: 1 },
+      insuranceRules,
+      simplifiedTaxTable,
+    );
+    expect(r.incomeTax).toBe(1_507_400);
+    expect(r.localTax).toBe(150_740);
+  });
+
+  it("초과 산식 1구간(월 1,200만·1인): 1,507,400 + 25,000 + 200만×98%×35% = 2,218,400", () => {
     const r = computeSalarySenior(
       { age: 58, monthlySalary: 12_000_000, dependents: 1 },
       insuranceRules,
       simplifiedTaxTable,
+    );
+    expect(r.incomeTax).toBe(2_218_400);
+    expect(r.notes.join(" | ")).not.toContain("간이세액표 구간을 벗어나");
+  });
+
+  it("초과 산식 1구간·3인: 기준세액만 3인 열로 (1,200,840 + 25,000 + 686,000 = 1,911,840)", () => {
+    const r = computeSalarySenior(
+      { age: 58, monthlySalary: 12_000_000, dependents: 3 },
+      insuranceRules,
+      simplifiedTaxTable,
+    );
+    expect(r.incomeTax).toBe(1_911_840);
+  });
+
+  it("초과 산식 최상단(월 1억·1인): 1,507,400 + 31,034,600 + 1,300만×45% = 38,392,000", () => {
+    const r = computeSalarySenior(
+      { age: 58, monthlySalary: 100_000_000, dependents: 1 },
+      insuranceRules,
+      simplifiedTaxTable,
+    );
+    expect(r.incomeTax).toBe(38_392_000);
+  });
+
+  it("overflow 데이터가 없는 표에서 구간 초과 시: 소득세 0 으로 조용히 두지 않고 안내한다", () => {
+    const noOverflow: SimplifiedTaxTable = {
+      _meta: structuredClone(simplifiedTaxTable._meta),
+      rows: structuredClone(simplifiedTaxTable.rows),
+      // overflow 필드 없음 — 구버전 데이터 폴백 경로
+    };
+    const r = computeSalarySenior(
+      { age: 58, monthlySalary: 12_000_000, dependents: 1 },
+      insuranceRules,
+      noOverflow,
     );
     expect(r.incomeTax).toBe(0);
     expect(r.notes.join(" | ")).toContain("간이세액표 구간을 벗어나");

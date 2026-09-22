@@ -424,6 +424,22 @@ export interface SimplifiedTaxTable {
   /** 월급여(천원 단위 아님, 원) 구간 [min, max) — max=null 은 최상단(산식 구간).
    *  byDependents[i] = 공제대상 가족 수 (i+1)명일 때 월 소득세(원). */
   rows: Array<{ min: number; max: number | null; byDependents: number[] }>;
+  /** 표 상단 초과 구간 (국세청 표 하단 산식 — 원문: "10,000천원 초과 …") */
+  overflow?: {
+    /** 산식의 기준점 (원, 예: 10,000,000) — 정확히 이 금액이면 baseByDependents 그대로 */
+    baseAt: number;
+    /** "10,000천원인 경우의 해당 세액" (공제대상가족수 1~11인) */
+    baseByDependents: number[];
+    /** 세액 = base + fixed + round(초과분(min 초과분) × (applyRate98 ? 0.98 : 1) × rate).
+     *  fixed 누적 정합성(fixed[i+1] = fixed[i] + 구간폭×(0.98)×rate)은 테스트가 데이터로 검증. */
+    tiers: Array<{
+      min: number;
+      max: number | null;
+      fixed: number;
+      rate: number;
+      applyRate98: boolean;
+    }>;
+  };
   /** 최고 구간(표 밖) 처리 규칙 설명 */
   overflowRule?: string;
 }
