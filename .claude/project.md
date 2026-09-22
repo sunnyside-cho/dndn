@@ -31,6 +31,8 @@
                  Vercel — 운영 배포 플랫폼(사용자 결정) · 2026-09-21
                  `html-to-image` — 결과 이미지 저장(F-05) · MIT · 2026-09-21
                  `gray-matter`+`marked` — guide 마크다운 파이프라인 · MIT · 2026-09-21
+                 TypeSafe AI(Jev) — W1 개정 모니터 분류(`tools/monitor/`, 사용자 결정,
+                 백테스트 recall 100% 확인) · API · 2026-09-22
 
 ## 운영 규모
 - 규모: 500명 이상 — 여러 회사·그룹사 사용 (init 선택값 · 설계 기준치는 2,000명으로 잡음)

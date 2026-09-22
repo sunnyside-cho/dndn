@@ -1,0 +1,47 @@
+# W1 제도 개정 모니터링 — 주 1회 + 12~1월 매일 (WORKFLOW.md 캐던스).
+# fail-closed: 수집 실패·미분류도 리포트에 실리고, 알림 조건이면 이슈를 남긴다.
+# rules 갱신은 절대 자동화하지 않는다 — 사람이 원문 대조 후 반영 (W1 절대 규칙).
+name: rule-monitor
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # 매주 월 09:00 KST
+    - cron: "0 0 * 12,1 *" # 12~1월 매일 09:00 KST (발표 시즌)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Run monitor
+        id: run
+        env:
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+        run: |
+          set +e
+          node tools/monitor/run.mjs
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+      - name: Commit snapshots & report
+        run: |
+          git config user.name "rule-monitor[bot]"
+          git config user.email "noreply@users.noreply.github.com"
+          git add tools/monitor/snapshots tools/monitor/reports
+          git diff --cached --quiet || git commit -m "chore(monitor): $(date -u +%F) 스냅샷·리포트"
+          git push
+      - name: Open issue on alert
+        if: steps.run.outputs.exit == '2'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "🔴 제도 개정 모니터 알림 — $(date -u +%F)" \
+            --body-file "tools/monitor/reports/$(date -u +%F).md" \
+            --label "rule-change"
