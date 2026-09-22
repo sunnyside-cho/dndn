@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Disclaimer } from "@/components/Disclaimer";
+import { SourceBadge } from "@/components/SourceBadge";
 import { getGuide, listGuides } from "@/lib/guide";
 import { SITE, toolMeta } from "@/lib/site";
 
@@ -86,6 +87,11 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
       ) : null}
 
       <Disclaimer />
+      {/* 기준일·출처 배지 — 프론트매터에서 파생 (design-guide: 전 도구·글 하단, 수기 금지) */}
+      <SourceBadge
+        asOf={g.updated ?? g.date}
+        source={g.sources?.map((s) => s.label).join(" · ") ?? "본문 출처 표기"}
+      />
     </article>
   );
 }

@@ -181,18 +181,13 @@ function ResultView({
 }) {
   const r = result;
   const discountRows = rules.irp.pensionDiscount.rows;
-  // "20년 넘게" 의 20 은 rules 마지막 구간 직전 yearsMax 에서 가져온다 (리터럴 금지)
-  const longYears =
-    discountRows.length >= 2 ? discountRows[discountRows.length - 2].yearsMax : null;
   const longest = r.irpOptions[r.irpOptions.length - 1];
   const localPct = Math.round(rules.localTaxRate.value * 100);
 
-  const longPhrase =
-    longYears !== null ? `${longYears}년 넘게 받으면` : `${longest.label} 받으면`;
   const headline =
     r.totalTaxLump === 0
       ? "이 조건에서는 퇴직소득세가 0원으로 계산돼요"
-      : `일시금으로 받으면 세금 약 ${wonKorean(r.totalTaxLump)} — IRP로 ${longPhrase} 약 ${wonKorean(longest.totalTax)} (${wonKorean(longest.saving)} 절세)`;
+      : `일시금으로 받으면 세금 약 ${wonKorean(r.totalTaxLump)} — IRP로 ${longest.label.replace(" 수령", "")}에 나눠 받으면 약 ${wonKorean(longest.totalTax)} (${wonKorean(longest.saving)} 절세)`;
 
   return (
     <div>
@@ -268,11 +263,11 @@ function ResultView({
             </thead>
             <tbody>
               <tr>
-                <td>세금 감면</td>
+                <td>실효 감면율</td>
                 <td className="num">없음</td>
                 {r.irpOptions.map((o) => (
                   <td key={o.label} className="num">
-                    {Math.round((1 - o.payRate) * 100)}%
+                    약 {Math.round((1 - o.payRate) * 100)}%
                   </td>
                 ))}
               </tr>
@@ -307,9 +302,16 @@ function ResultView({
           </table>
         </div>
         <p className="t-body mt-2">
-          이 계산에서는 IRP로 {longest.label} 수령 시 세금이 {won(longest.saving)} 줄어드는
-          것으로 계산됩니다. 실제 유불리는 수령 기간·운용 수익 등 개인 상황에 따라 달라질 수
-          있어요.
+          감면은 수령 <strong>연차별</strong>로 적용돼요 —{" "}
+          {discountRows
+            .map((row, i) => {
+              const from = i === 0 ? 1 : (discountRows[i - 1].yearsMax ?? 0) + 1;
+              const range = row.yearsMax === null ? `${from}년차부터` : `${from}~${row.yearsMax}년차`;
+              return `${range} ${Math.round((1 - row.payRate) * 100)}%`;
+            })
+            .join(" · ")}
+          . 위 표는 해마다 같은 금액을 받는다고 가정했을 때의 실효 감면율이며, 실제 유불리는
+          수령 방식·운용 수익 등 개인 상황에 따라 달라질 수 있어요.
         </p>
       </section>
 

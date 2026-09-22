@@ -4,6 +4,7 @@ import { severanceRules } from "@/data/rules";
 import {
   computeSeverance,
   convertedTaxFor,
+  irpEffectivePayRate,
   parseConvertedSalaryDeduction,
   parseServiceYearFormula,
   serviceYearsBetween,
@@ -73,17 +74,29 @@ describe("computeSeverance — 앵커: 퇴직금 1억·근속 20년", () => {
     expect(r.netLump).toBe(98_768_000);
   });
 
-  it("IRP 3구간: 라벨은 rules yearsMax 로 조립, 세액·절세액은 payRate 대로", () => {
+  it("IRP 시나리오 3종: 실효 부담률(연차별 감면 가중평균) × 이연세액 — codex #3 반영", () => {
     const r = computeSeverance(anchor, severanceRules);
     expect(r.irpOptions).toHaveLength(3);
-    expect(r.irpOptions.map((o) => o.label)).toEqual(["10년 이하", "10~20년", "20년 초과"]);
-    expect(r.irpOptions.map((o) => o.payRate)).toEqual([0.7, 0.6, 0.5]);
-    expect(r.irpOptions.map((o) => o.totalTax)).toEqual([862_400, 739_200, 616_000]);
+    expect(r.irpOptions.map((o) => o.label)).toEqual(["10년 수령", "15년 수령", "25년 수령"]);
+    // 10년: 전 기간 70% / 15년: (10×0.7+5×0.6)/15 = 2/3 / 25년: (10×0.7+10×0.6+5×0.5)/25 = 0.62
+    expect(r.irpOptions[0].payRate).toBeCloseTo(0.7, 10);
+    expect(r.irpOptions[1].payRate).toBeCloseTo(2 / 3, 10);
+    expect(r.irpOptions[2].payRate).toBeCloseTo(0.62, 10);
+    expect(r.irpOptions.map((o) => o.totalTax)).toEqual([862_400, 821_333, 763_840]);
 
     const long = r.irpOptions[2];
-    expect(long.totalTax).toBe(616_000); // 1,232,000 × 0.5
-    expect(long.saving).toBe(616_000);
-    expect(long.net).toBe(100_000_000 - 616_000);
+    expect(long.saving).toBe(468_160); // 1,232,000 − 763,840
+    expect(long.net).toBe(100_000_000 - 763_840);
+  });
+
+  it("irpEffectivePayRate — 21년 수령이면 (10×70% + 10×60% + 1×50%) ÷ 21 (codex 실측 앵커)", () => {
+    const rows = severanceRules.irp.pensionDiscount.rows;
+    expect(irpEffectivePayRate(10, rows)).toBeCloseTo(0.7, 10);
+    expect(irpEffectivePayRate(21, rows)).toBeCloseTo(13.5 / 21, 10);
+    // codex 리뷰 실측: 일시금 세액 1,232,000 × (21년 균등 수령) = 792,000
+    expect(Math.round(1_232_000 * irpEffectivePayRate(21, rows))).toBe(792_000);
+    // "세금 절반"(50%)은 전 기간이 아니라 21년차 이후 수령분에만 — 무한히 길어져야 0.5 에 수렴
+    expect(irpEffectivePayRate(100, rows)).toBeGreaterThan(0.5);
   });
 });
 
@@ -131,8 +144,8 @@ describe("computeSeverance — 추가 케이스 (수기 계산 앵커)", () => {
     expect(r.netLump).toBe(257_111_000);
 
     const long = r.irpOptions[2];
-    expect(long.totalTax).toBe(21_444_500); // 42,889,000 × 0.5 (round)
-    expect(long.saving).toBe(21_444_500);
+    expect(long.totalTax).toBe(26_591_180); // 42,889,000 × 0.62 (25년 균등 수령 실효율)
+    expect(long.saving).toBe(16_297_820);
   });
 
   it("convertedTaxFor — 전 구간 경계에서 누적세액이 연속이다 (구간표 정합성)", () => {
@@ -181,7 +194,7 @@ describe("DoD: rules 파일 교체만으로 숫자가 바뀐다 (하드코딩 �
     expect(computeSeverance(anchor, severanceRules).totalTaxLump).toBe(1_232_000);
   });
 
-  it("IRP payRate·yearsMax 를 바꾸면 절세액·라벨이 그에 따라 변한다", () => {
+  it("IRP payRate·yearsMax 를 바꾸면 실효 부담률이 그에 따라 변한다", () => {
     const anchor: SeveranceInput = {
       severancePay: 100_000_000,
       joinDate: "2006-01-01",
@@ -192,7 +205,8 @@ describe("DoD: rules 파일 교체만으로 숫자가 바뀐다 (하드코딩 �
     swapped.irp.pensionDiscount.rows[1].yearsMax = 15;
 
     const r = computeSeverance(anchor, swapped);
-    expect(r.irpOptions[2].totalTax).toBe(492_800); // 1,232,000 × 0.4
-    expect(r.irpOptions.map((o) => o.label)).toEqual(["10년 이하", "10~15년", "15년 초과"]);
+    // 25년: (10×0.7 + 5×0.6 + 10×0.4) ÷ 25 = 0.56 → 1,232,000 × 0.56 = 689,920
+    expect(r.irpOptions[2].payRate).toBeCloseTo(0.56, 10);
+    expect(r.irpOptions[2].totalTax).toBe(689_920);
   });
 });

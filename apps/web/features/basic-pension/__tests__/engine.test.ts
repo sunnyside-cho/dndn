@@ -8,6 +8,7 @@ const base: BasicPensionInput = {
   birthYear: 1958, // 2026 기준 68세
   hasOccupationalPension: false,
   household: "single",
+  spouseEligible: true,
   region: "city",
   laborIncomeSelf: 0,
   laborIncomeSpouse: 0,
@@ -113,6 +114,45 @@ describe("computeBasicPension — 경계·자격", () => {
     expect(computeBasicPension(input, basicPensionRules).assetConverted).toBe(350_000);
     // 0.5: 1.0억 − 8,500만 = 1,500만 ×4%÷12 = 50,000
     expect(computeBasicPension(input, swapped).assetConverted).toBe(50_000);
+  });
+});
+
+describe("codex 리뷰 반영 — 임계값·부부 1인 수급 (2026-09-22)", () => {
+  it("자녀 명의 주택 5억(< 기준 6억)은 무료임차소득을 가산하지 않는다", () => {
+    const r = computeBasicPension({ ...base, freeRentHousePrice: 500_000_000 }, basicPensionRules);
+    expect(r.breakdown.freeRentIncome).toBe(0);
+    // 6억 이상이면 가산: 6억 × 0.78% ÷ 12 = 390,000
+    const r2 = computeBasicPension({ ...base, freeRentHousePrice: 600_000_000 }, basicPensionRules);
+    expect(r2.breakdown.freeRentIncome).toBe(390_000);
+  });
+
+  it("차량 3천만(< 기준 4천만)은 100% 가산하지 않는다 — 회원권은 임계 없이 가산", () => {
+    const r = computeBasicPension(
+      { ...base, luxuryCarValue: 30_000_000, membershipValue: 10_000_000 },
+      basicPensionRules,
+    );
+    expect(r.breakdown.luxuryAdded).toBe(10_000_000); // 회원권만
+    const r2 = computeBasicPension({ ...base, luxuryCarValue: 40_000_000 }, basicPensionRules);
+    expect(r2.breakdown.luxuryAdded).toBe(40_000_000); // 경계(이상) 포함
+  });
+
+  it("부부가구·배우자 미수급(65세 미만 등): 1인분 전액 349,700 — 부부감액 없음", () => {
+    const r = computeBasicPension(
+      { ...base, household: "couple", spouseEligible: false },
+      basicPensionRules,
+    );
+    expect(r.verdict).toBe("eligible");
+    expect(r.criterion).toBe(3_952_000); // 선정기준은 부부가구 기준 유지
+    expect(r.estimatedMonthly).toBe(349_700); // 감액 없음 (수급자 1인)
+  });
+
+  it("부부가구·배우자 미수급 + 소득역전방지 최저선은 1인 기준(34,970)", () => {
+    const r = computeBasicPension(
+      { ...base, household: "couple", spouseEligible: false, otherIncomeMonthly: 3_930_000 },
+      basicPensionRules,
+    );
+    // cap = 3,952,000 − 3,930,000 = 22,000 < 1인 최저 34,970
+    expect(r.estimatedMonthly).toBe(34_970);
   });
 });
 

@@ -42,8 +42,9 @@ export default function HomePage() {
       <section className="mt-12 rounded-[var(--radius-lg)] bg-[var(--surface-subtle)] p-6 sm:p-8">
         <h2 className="t-h3 mt-0">모든 숫자에 기준일과 출처를 답니다</h2>
         <p className="t-body-l mb-0 max-w-[720px]">
-          법령·고시 원문을 확인한 값만 사용하고, 페이지마다 기준일을 표기합니다. 제도가 바뀌면
-          기준 데이터를 갱신합니다 — 12월~1월 개정 시즌에는 발표 즉시 반영합니다.
+          법령·고시 원문 확인을 원칙으로 하고, 원문 대조가 끝나지 않은 값은 화면에 &ldquo;재확인
+          중&rdquo;으로 표시합니다. 페이지마다 기준일을 표기하며, 제도가 바뀌면 기준 데이터를
+          갱신합니다 — 12월~1월 개정 시즌에는 발표 즉시 반영합니다.
         </p>
       </section>
 

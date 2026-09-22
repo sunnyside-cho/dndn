@@ -6,7 +6,8 @@
     "appliedFrom": "2026-03-01",
     "source": "국세청 홈택스 근로소득 간이세액표 공식 엑셀 (2026.3.1 적용판) 원본: 02_data/rules/source/",
     "verified": "official",
-    "unit": "min/max=월급여 원 (비과세·학자금 제외), byDependents=[공제대상가족수 1~11인 세액(원)]"
+    "unit": "min/max=월급여 원 (비과세·학자금 제외), byDependents=[공제대상가족수 1~11인 세액(원)]",
+    "sourceLabel": "국세청 근로소득 간이세액표"
   },
   "rows": [
     {
@@ -11063,42 +11064,42 @@
         "max": 14000000,
         "fixed": 25000,
         "rate": 0.35,
-        "applyRate98": true
+        "adjustRate": 0.98
       },
       {
         "min": 14000000,
         "max": 28000000,
         "fixed": 1397000,
         "rate": 0.38,
-        "applyRate98": true
+        "adjustRate": 0.98
       },
       {
         "min": 28000000,
         "max": 30000000,
         "fixed": 6610600,
         "rate": 0.4,
-        "applyRate98": true
+        "adjustRate": 0.98
       },
       {
         "min": 30000000,
         "max": 45000000,
         "fixed": 7394600,
         "rate": 0.4,
-        "applyRate98": false
+        "adjustRate": 1
       },
       {
         "min": 45000000,
         "max": 87000000,
         "fixed": 13394600,
         "rate": 0.42,
-        "applyRate98": false
+        "adjustRate": 1
       },
       {
         "min": 87000000,
         "max": null,
         "fixed": 31034600,
         "rate": 0.45,
-        "applyRate98": false
+        "adjustRate": 1
       }
     ]
   }

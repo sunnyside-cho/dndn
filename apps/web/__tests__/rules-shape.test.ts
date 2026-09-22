@@ -20,10 +20,12 @@ describe("rules 파일 구조 계약 (db-schema.md)", () => {
     ["tax-table", simplifiedTaxTable._meta],
   ] as const;
 
-  it("모든 rules 는 _meta(year·asOf) 를 갖는다 — SourceBadge 자동 표기의 원천", () => {
+  it("모든 rules 는 _meta(year·asOf·sourceLabel) 를 갖는다 — SourceBadge 자동 표기의 원천", () => {
     for (const [name, meta] of all) {
       expect(meta.year, name).toBe(ACTIVE_YEAR);
       expect(meta.asOf, name).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      // 출처 라벨은 데이터가 정본 (codex #9 — 호출부 수기 금지)
+      expect(meta.sourceLabel ?? meta.source ?? meta.law, name).toBeTruthy();
     }
   });
 
@@ -59,7 +61,8 @@ describe("rules 파일 구조 계약 (db-schema.md)", () => {
 
   it("4대보험: 상하한·60세 면제 플래그·2027 파생값", () => {
     const np = insuranceRules.nationalPension;
-    expect(np.baseMonthly.from_2026_07?.max).toBeGreaterThan(np.baseMonthly.from_2026_07!.min);
+    expect(np.baseMonthly.applied.max).toBeGreaterThan(np.baseMonthly.applied.min);
+    expect(np.exemptAgeMin.value).toBe(60);
     expect(np.age60Exempt.value).toBe(true);
     // next2027(총요율 10%) → 근로자 절반 5%
     expect(nextYearRates.nationalPensionEmployee).toBeCloseTo(0.05);
@@ -88,6 +91,10 @@ describe("rules 파일 구조 계약 (db-schema.md)", () => {
     expect(dependentRules.regionalPremium.incomeReflection.halfRate.value).toBe(0.5);
     expect(dependentRules.regionalPremium.incomeReflection.fullRate.value).toBe(1.0);
     expect(insuranceRules.incomeTax?.localTaxRate.value).toBe(0.1);
+    // #7·#8: 연도 중립 구조 + 면제 나이 구조화 — verified 동반 (codex #6)
+    expect(insuranceRules.nationalPension.exemptAgeMin.verified).toBeDefined();
+    expect(insuranceRules.nationalPension.rateEmployee.verified).toBeDefined();
+    expect(basicPensionRules.assetConversion.rentDepositRate.verified).toBe("official");
   });
 
   it("간이세액표 overflow: 구간 연속 + fixed 누적 정합 (산식 해석을 데이터로 검증 — C-1 교훈)", () => {
@@ -102,7 +109,7 @@ describe("rules 파일 구조 계약 (db-schema.md)", () => {
       expect(o.tiers[i + 1].min, `tier ${i + 1} 연속성`).toBe(t.max);
       // fixed[i+1] = fixed[i] + 구간폭 × (98%) × rate — 국세청 산식의 누적 구조가 데이터와 일치해야 함
       const span = (t.max as number) - t.min;
-      const expected = t.fixed + Math.round(span * (t.applyRate98 ? 0.98 : 1) * t.rate);
+      const expected = t.fixed + Math.round(span * t.adjustRate * t.rate);
       expect(o.tiers[i + 1].fixed, `tier ${i + 1} fixed 정합`).toBe(expected);
     }
   });

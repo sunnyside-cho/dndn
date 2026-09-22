@@ -9,7 +9,7 @@ import { ResultCard } from "@/components/ResultCard";
 import { ChoiceGroup, MoneyField, StepShell } from "@/components/wizard";
 import { basicPensionRules } from "@/data/rules";
 import { track } from "@/lib/analytics";
-import { won } from "@/lib/format";
+import { won, wonKorean } from "@/lib/format";
 import { computeBasicPension } from "../engine";
 import {
   basicPensionFormDefaults,
@@ -43,6 +43,7 @@ export function BasicPensionCalculator() {
   });
 
   const household = watch("household");
+  const spouseEligible = watch("spouseEligible");
   const occupational = watch("occupational");
   const region = watch("region");
   const hasLuxury = watch("hasLuxury");
@@ -92,7 +93,15 @@ export function BasicPensionCalculator() {
 
   // ---- 결과 화면 ----
   if (result) {
-    return <ResultView result={result} onRestart={restart} couple={couple} />;
+    // 선정기준액 라벨은 가구(couple) 기준, "부부 합산" 헤드라인은 실제 2인 수급일 때만
+    return (
+      <ResultView
+        result={result}
+        onRestart={restart}
+        couple={couple}
+        twoRecipients={couple && spouseEligible}
+      />
+    );
   }
 
   // ---- 문답 7단계 ----
@@ -141,6 +150,20 @@ export function BasicPensionCalculator() {
             value={household}
             onChange={(v) => setValue("household", v)}
           />
+          {household === "couple" ? (
+            <>
+              {/* 부부감액은 두 분 모두 수급할 때만 — 배우자 연령 확인 (codex 리뷰 #1) */}
+              <p className="t-h4 mb-2 mt-6">배우자도 만 65세가 지나셨나요?</p>
+              <ChoiceGroup
+                options={[
+                  { value: "yes", label: "예", desc: "두 분 모두 받는 기준으로 계산해요 (각 20% 감액)" },
+                  { value: "no", label: "아니요", desc: "본인 한 분 기준으로 계산해요 (감액 없음)" },
+                ]}
+                value={spouseEligible ? "yes" : "no"}
+                onChange={(v) => setValue("spouseEligible", v === "yes")}
+              />
+            </>
+          ) : null}
         </StepShell>
       ) : null}
 
@@ -222,7 +245,7 @@ export function BasicPensionCalculator() {
           />
           <MoneyField
             label="이자소득 (월)"
-            help="예금 이자 등. 매달 4만원까지는 빼고 계산해요."
+            help={`예금 이자 등. 매달 ${wonKorean(rules.incomeEvaluation.interestDeduction.value)}까지는 빼고 계산해요.`}
             error={errors.interestIncome?.message}
             onNone={() => setValue("interestIncome", 0)}
             inputProps={register("interestIncome")}
@@ -248,14 +271,14 @@ export function BasicPensionCalculator() {
           />
           <MoneyField
             label="전월세 보증금"
-            help="5%를 뺀 95%가 재산으로 계산돼요."
+            help={`${Math.round((1 - rules.assetConversion.rentDepositRate.value) * 100)}%를 뺀 ${Math.round(rules.assetConversion.rentDepositRate.value * 100)}%가 재산으로 계산돼요.`}
             error={errors.rentDeposit?.message}
             onNone={() => setValue("rentDeposit", 0)}
             inputProps={register("rentDeposit")}
           />
           <MoneyField
             label="예금 등 금융재산"
-            help="2,000만원까지는 빼고 계산해요."
+            help={`${wonKorean(rules.assetConversion.financialDeduction.value)}까지는 빼고 계산해요.`}
             error={errors.financialAssets?.message}
             onNone={() => setValue("financialAssets", 0)}
             inputProps={register("financialAssets")}
@@ -280,7 +303,7 @@ export function BasicPensionCalculator() {
           }
           nextLabel="결과 보기"
         >
-          <p className="t-h4 mb-2">4천만원 이상 자동차나 골프 회원권 등이 있으세요?</p>
+          <p className="t-h4 mb-2">{wonKorean(rules.assetConversion.luxuryCarPriceMin.value)} 이상 자동차나 골프 회원권 등이 있으세요?</p>
           <ChoiceGroup
             options={[
               { value: "no", label: "아니요" },
@@ -305,7 +328,7 @@ export function BasicPensionCalculator() {
               />
             </>
           ) : null}
-          <p className="t-h4 mb-2 mt-6">자녀 명의의 6억원 이상 집에 살고 계세요?</p>
+          <p className="t-h4 mb-2 mt-6">자녀 명의의 {wonKorean(rules.incomeEvaluation.freeRentHousePriceMin.value)} 이상 집에 살고 계세요?</p>
           <ChoiceGroup
             options={[
               { value: "no", label: "아니요" },
@@ -350,16 +373,18 @@ function TerminalNotice({
 function ResultView({
   result,
   couple,
+  twoRecipients,
   onRestart,
 }: {
   result: BasicPensionResult;
   couple: boolean;
+  twoRecipients: boolean;
   onRestart: () => void;
 }) {
   const r = result;
   const headline =
     r.verdict === "eligible"
-      ? `받으실 가능성이 높아요 — 예상 ${couple ? "부부 합산 " : ""}월 ${won(r.estimatedMonthly ?? 0)}`
+      ? `받으실 가능성이 높아요 — 예상 ${twoRecipients ? "부부 합산 " : ""}월 ${won(r.estimatedMonthly ?? 0)}`
       : `아쉽지만 기준을 넘어요 — 소득인정액이 기준보다 ${won(r.recognizedIncome - r.criterion)} 많아요`;
 
   return (

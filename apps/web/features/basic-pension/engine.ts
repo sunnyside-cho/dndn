@@ -33,8 +33,9 @@ export function computeBasicPension(
   const nps = input.npsSelf + (couple ? input.npsSpouse : 0);
   const otherIncome = nps + input.otherIncomeMonthly + interest;
 
+  // 무료임차소득 — 주택가액이 기준(6억) **이상**일 때만 가산 (고시 제4조)
   const freeRentIncome =
-    input.freeRentHousePrice > 0
+    input.freeRentHousePrice >= r.incomeEvaluation.freeRentHousePriceMin.value
       ? (input.freeRentHousePrice * r.incomeEvaluation.freeRentRate.value) / 12
       : 0;
 
@@ -54,8 +55,10 @@ export function computeBasicPension(
     0,
   );
   const convertible = Math.max(generalAssetNet + financialAssetNet - input.debts, 0);
-  // 고급차·회원권은 공제·환산율 미적용, 가액 100% 월 가산
-  const luxuryAdded = input.luxuryCarValue + input.membershipValue;
+  // 고급차는 기준가액(4천만) **이상**일 때만, 회원권은 임계 없이 — 공제·환산율 미적용 100% 가산
+  const luxuryCar =
+    input.luxuryCarValue >= r.assetConversion.luxuryCarPriceMin.value ? input.luxuryCarValue : 0;
+  const luxuryAdded = luxuryCar + input.membershipValue;
   const assetConverted =
     (convertible * r.assetConversion.conversionRateAnnual.value) / 12 + luxuryAdded;
 
@@ -71,9 +74,11 @@ export function computeBasicPension(
     luxuryAdded: Math.round(luxuryAdded),
   };
 
+  // 부부가구라도 배우자가 수급 대상이 아니면(65세 미만 등) 1인 수급 — 부부감액 없음
+  const twoRecipients = couple && input.spouseEligible;
   const baseMax = r.basePension.monthlyMax.value;
   const npsLink: BasicPensionResult["npsLink"] =
-    Math.max(input.npsSelf, couple ? input.npsSpouse : 0) >
+    Math.max(input.npsSelf, twoRecipients ? input.npsSpouse : 0) >
     baseMax * r.npsLink.fullPaymentThresholdRate.value
       ? "mayReduce"
       : "full";
@@ -98,9 +103,9 @@ export function computeBasicPension(
     return { verdict: "notEligible", estimatedMonthly: null, incomeReversalApplied: false, ...common };
   }
 
-  // ---- 지급액: 기준연금액 → (부부 각 20% 감액) → 소득역전방지 (최저 = 기준연금액×10%) ----
-  const persons = couple ? 2 : 1;
-  const afterCouple = couple
+  // ---- 지급액: 기준연금액 → (부부 모두 수급 시 각 20% 감액) → 소득역전방지 (최저 = ×10%) ----
+  const persons = twoRecipients ? 2 : 1;
+  const afterCouple = twoRecipients
     ? baseMax * (1 - r.basePension.coupleReductionRate.value) * 2
     : baseMax;
   const reversalCap = criterion - recognizedIncome;

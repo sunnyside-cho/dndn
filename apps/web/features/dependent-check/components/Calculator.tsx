@@ -88,17 +88,18 @@ export function DependentCheckCalculator() {
           step={0}
           total={TOTAL_STEPS}
           title="누구의 건강보험에 피부양자로 들어가세요?"
-          help="직장가입자인 가족의 보험에 얹히는 경우예요. 이 답은 판정에 쓰이지 않고 안내용이에요."
+          help="직장가입자인 가족의 보험에 얹히는 경우예요. 형제자매의 보험이면 재산 기준이 더 엄격해서 판정에 반영돼요."
           onNext={() => next(["supporter"])}
         >
           <ChoiceGroup
             options={[
               { value: "child", label: "자녀의 직장보험", desc: "가장 흔한 경우예요" },
               { value: "spouse", label: "배우자의 직장보험" },
+              { value: "parent", label: "부모의 직장보험" },
               {
-                value: "other",
-                label: "부모·형제자매 등 다른 가족",
-                desc: "형제자매는 30세 미만·65세 이상·장애인 등만 가능하고, 재산 요건도 더 엄격해요",
+                value: "sibling",
+                label: "형제자매의 직장보험",
+                desc: "30세 미만·65세 이상·장애인 등만 가능하고, 재산 상한이 1억 8천만원으로 더 엄격해요",
               },
             ]}
             value={supporter}
@@ -162,7 +163,7 @@ export function DependentCheckCalculator() {
           title="주택임대소득이 있으세요?"
           help="주택을 세놓아 받는 월세 등이에요. 상가 임대는 사업소득으로 앞 단계에 해당해요."
           onBack={back}
-          onNext={() => next(["rentalIncome"])}
+          onNext={() => next(["rentalIncome", "rentalIncomeAnnual"])}
         >
           <ChoiceGroup
             options={[
@@ -172,6 +173,14 @@ export function DependentCheckCalculator() {
             value={rentalIncome}
             onChange={(v) => setValue("rentalIncome", v)}
           />
+          {rentalIncome === "yes" ? (
+            <MoneyField
+              label="연간 주택임대소득 (대략)"
+              help="자격 판정에는 금액이 필요 없지만, 제외될 경우 예상 보험료 계산에 사용돼요."
+              error={errors.rentalIncomeAnnual?.message}
+              inputProps={register("rentalIncomeAnnual")}
+            />
+          ) : null}
         </StepShell>
       ) : null}
 

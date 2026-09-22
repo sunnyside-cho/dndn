@@ -30,6 +30,8 @@ export interface RulesMeta {
   note?: string;
   law?: string;
   source?: string;
+  /** SourceBadge 에 표기할 짧은 기관·근거 라벨 — 화면 출처 표기의 정본 (수기 금지, codex #9) */
+  sourceLabel?: string;
   unit?: string;
   primarySources?: Record<string, string>;
 }
@@ -169,29 +171,34 @@ export interface DependentRules {
   verifyAgainst?: string;
 }
 
-/** insurance.{year}.json — 4대보험 요율 (원본: {year}.insurance.draft.json) */
+/** insurance.{year}.json — 4대보험 요율 (원본: {year}.insurance.draft.json)
+ *  필드명은 연도 중립 (codex #8) — 연도 갱신은 파일 교체 + 활성 import 전환만으로 끝나야 한다. */
 export interface InsuranceRules {
   _meta: RulesMeta;
   nationalPension: {
     rateTotal: SourcedValue;
-    rateEmployee: SourcedValue | { value: number };
+    rateEmployee: SourcedValue;
+    /** 기준소득월액 상하한 — applied 가 현재 적용 구간 (연중 개정 시 previous 에 직전 구간) */
     baseMonthly: {
-      until_2026_06?: { min: number; max: number };
-      from_2026_07?: { min: number; max: number };
+      applied: { min: number; max: number; from?: string };
+      previous?: { min: number; max: number; until?: string };
       verified?: Verified;
       source?: string;
     };
     age60Exempt: SourcedValue<boolean>;
-    next2027?: SourcedValue;
+    /** 사업장가입 제외(공제 0) 시작 나이 — age60Exempt 와 함께 사용 */
+    exemptAgeMin: SourcedValue;
+    /** 내년 확정 총요율 (미발표면 필드 없음) */
+    nextYear?: SourcedValue;
   };
   healthInsurance: {
     rateEmployee: SourcedValue;
     longTermCare: { formula: string; verified?: Verified };
-    next2027?: SourcedValue;
+    nextYear?: SourcedValue;
   };
   employmentInsurance: {
     rateEmployee: SourcedValue;
-    pending2027?: { note?: string; verified?: Verified };
+    pendingNextYear?: { note?: string; verified?: Verified };
   };
   industrialAccident?: { rateEmployee: number; verified?: Verified };
   incomeTax?: {
@@ -227,6 +234,9 @@ export interface BasicPensionInput {
   /** 공무원·군인·사학 등 직역연금 수급(본인 또는 배우자) */
   hasOccupationalPension: boolean;
   household: HouseholdType;
+  /** 부부가구에서 배우자도 수급 대상(만 65세 도달 등)인지 — 단독가구면 무시.
+   *  false = 1인 수급: 부부감액 미적용·최저선 1인 기준 (선정기준액은 부부가구 기준 유지) */
+  spouseEligible: boolean;
   region: RegionType;
   /** 월 근로소득 (본인/배우자, 원) */
   laborIncomeSelf: number;
@@ -240,7 +250,7 @@ export interface BasicPensionInput {
   interestIncomeMonthly: number;
   /** 일반재산: 집·땅 시가표준액 (원) */
   generalAssets: number;
-  /** 전월세보증금 (원) — 50% 반영은 엔진이 수행 */
+  /** 전월세보증금 (원) — 95% 반영(rules.rentDepositRate)은 엔진이 수행 */
   rentDeposit: number;
   financialAssets: number;
   debts: number;
@@ -296,9 +306,10 @@ export interface SeveranceInput {
 }
 
 export interface IrpOption {
-  /** 표시 라벨 구간: "10년 이하" | "10~20년" | "20년 초과" */
+  /** 수령 기간 시나리오 라벨: "10년 수령" 등 (균등 수령 가정) */
   label: string;
-  /** 이연퇴직소득세 부담 비율 (0.7/0.6/0.5) */
+  /** 실효 부담률 — 연차별 감면율(1~10년차 70%·11~20년차 60%·21년차~ 50% 부담)을 균등 수령
+   *  가정으로 가중평균한 값. 기간 전체에 단일 감면율을 적용하지 않는다 (codex 리뷰 #3). */
   payRate: number;
   totalTax: number;
   net: number;
@@ -328,6 +339,9 @@ export interface SeveranceResult {
 // ---------------------------------------------------------------------------
 
 export interface DependentInput {
+  /** 가입자와의 관계 — sibling(형제자매의 직장보험에 얹히는 경우)은 재산 상한이
+   *  assetMax.sibling(1.8억) 단일 기준 + 연령·장애 요건 별도 (codex 리뷰 #4) */
+  relationship: "family" | "sibling";
   hasBusinessRegistration: boolean;
   /** 사업자등록 있을 때: 사업소득 발생 여부 / 없을 때: 연 500만 초과 여부 판단용 사업소득액(연) */
   businessIncomeAnnual: number;
@@ -430,14 +444,15 @@ export interface SimplifiedTaxTable {
     baseAt: number;
     /** "10,000천원인 경우의 해당 세액" (공제대상가족수 1~11인) */
     baseByDependents: number[];
-    /** 세액 = base + fixed + round(초과분(min 초과분) × (applyRate98 ? 0.98 : 1) × rate).
-     *  fixed 누적 정합성(fixed[i+1] = fixed[i] + 구간폭×(0.98)×rate)은 테스트가 데이터로 검증. */
+    /** 세액 = base + fixed + round(초과분(min 초과분) × adjustRate × rate). adjustRate 는
+     *  국세청 산식의 98% 조정(없으면 1) — 수치로 수록 (codex #7, 하드코딩 금지).
+     *  fixed 누적 정합성(fixed[i+1] = fixed[i] + 구간폭×adjustRate×rate)은 테스트가 검증. */
     tiers: Array<{
       min: number;
       max: number | null;
       fixed: number;
       rate: number;
-      applyRate98: boolean;
+      adjustRate: number;
     }>;
   };
   /** 최고 구간(표 밖) 처리 규칙 설명 */

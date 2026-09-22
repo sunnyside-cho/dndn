@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AdSlot } from "@/components/AdSlot";
 import { FaqBlock } from "@/components/FaqBlock";
-import { SourceBadge } from "@/components/SourceBadge";
+import { SourceBadgeFromMeta } from "@/components/SourceBadge";
 import { basicPensionRules as rules, ACTIVE_YEAR } from "@/data/rules";
 import { computeBasicPension } from "@/features/basic-pension/engine";
 import { BasicPensionCalculator } from "@/features/basic-pension/components/Calculator";
@@ -17,6 +17,7 @@ export const metadata: Metadata = {
 const exampleBase = {
   birthYear: ACTIVE_YEAR - 68,
   hasOccupationalPension: false,
+  spouseEligible: true,
   laborIncomeSelf: 0,
   laborIncomeSpouse: 0,
   npsSelf: 0,
@@ -175,7 +176,8 @@ export default function BasicPensionPage() {
           </tbody>
         </table>
         <p className="t-caption mt-2">
-          출처: {rules._meta.primarySources?.["고시"]} · {rules._meta.primarySources?.["법"]}
+          출처: {rules._meta.primarySources?.["고시"]} · {rules._meta.primarySources?.["법"]}.
+          기본재산 공제 3종은 고시 별표 원문 재확인 중인 값이에요.
         </p>
       </section>
 
@@ -221,7 +223,7 @@ export default function BasicPensionPage() {
         ]}
       />
 
-      <SourceBadge asOf={rules._meta.asOf} source="보건복지부 고시·기초연금법 (법제처 국가법령정보센터)" />
+      <SourceBadgeFromMeta meta={rules._meta} />
     </div>
   );
 }

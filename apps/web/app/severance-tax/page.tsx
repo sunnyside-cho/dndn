@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { SeveranceInput } from "@contracts/shared-types";
 import { AdSlot } from "@/components/AdSlot";
 import { FaqBlock } from "@/components/FaqBlock";
-import { SourceBadge } from "@/components/SourceBadge";
+import { SourceBadgeFromMeta } from "@/components/SourceBadge";
 import { severanceRules as rules, ACTIVE_YEAR } from "@/data/rules";
 import { computeSeverance, parseServiceYearFormula } from "@/features/severance-tax/engine";
 import { SeveranceCalculator } from "@/features/severance-tax/components/Calculator";
@@ -75,8 +75,9 @@ export default function SeveranceTaxPage() {
       <p className="t-body-l mt-4">
         퇴직금을 일시금으로 받을 때 내는 <strong>퇴직소득세</strong>와, IRP(개인형
         퇴직연금)로 나눠 받을 때 줄어드는 세금을 {ACTIVE_YEAR}년 소득세법 기준으로 계산해
-        비교하는 도구입니다. {ACTIVE_YEAR}년부터 {longYears}년 넘게 나눠 받으면 퇴직소득세가{" "}
-        {longPct}% 감면되는 규칙이 새로 생겨서, 받는 방법에 따라 세금 차이가 더 커졌어요.
+        비교하는 도구입니다. {ACTIVE_YEAR}년부터는 연금 수령 {longYears}년차를 넘겨 받는
+        금액부터 퇴직소득세 감면이 {longPct}%로 커지는 규칙이 새로 생겨서, 길게 나눠 받을수록
+        세금 차이가 더 커졌어요.
       </p>
       <p className="t-body mt-2">
         입력하신 금액과 날짜는 서버로 전송되지 않고 이 화면 안에서만 계산됩니다.
@@ -110,9 +111,16 @@ export default function SeveranceTaxPage() {
             {localPct}%가 더해져요 (지방소득세율은 재확인 중입니다).
           </li>
           <li>
-            <strong>IRP로 이체하면</strong> 이 세금을 떼지 않고 미뤄 두었다가(과세이연), 연금으로
-            받는 기간에 따라 이연된 세금의{" "}
-            {discountRows.map((r) => `${pct(r.payRate)}%`).join(" / ")}만 나눠서 부담합니다.
+            <strong>IRP로 이체하면</strong> 이 세금을 떼지 않고 미뤄 두었다가(과세이연), 받는{" "}
+            <strong>연차별로</strong> 이연된 세금의 일부만 부담합니다 —{" "}
+            {discountRows
+              .map((row, i) => {
+                const from = i === 0 ? 1 : (discountRows[i - 1].yearsMax ?? 0) + 1;
+                const range = row.yearsMax === null ? `${from}년차부터` : `${from}~${row.yearsMax}년차`;
+                return `${range} 수령분은 ${pct(row.payRate)}%`;
+              })
+              .join(" · ")}
+            .
           </li>
         </ol>
       </section>
@@ -128,10 +136,11 @@ export default function SeveranceTaxPage() {
             {won(ex1.localTax)} = <strong>총 {won(ex1.totalTaxLump)}</strong>
           </li>
           <li>
-            같은 조건에서 IRP로 {longYears}년 넘게 나눠 받으면 총 세 부담은 약{" "}
-            {won(ex1Long.totalTax)} — <strong>{won(ex1Long.saving)} 줄어드는 것으로
-            계산됩니다</strong>. {ACTIVE_YEAR}년부터 {longYears}년 넘게 나눠 받으면 퇴직소득세{" "}
-            {longPct}% 감면이 새로 적용되기 때문이에요.
+            같은 조건에서 IRP로 {ex1Long.label.replace(" 수령", "")}에 나눠 받으면(매년 같은
+            금액 가정) 총 세 부담은 약 {won(ex1Long.totalTax)} —{" "}
+            <strong>{won(ex1Long.saving)} 줄어드는 것으로 계산됩니다</strong>. 감면율이 수령
+            연차별로 커져서({longYears}년차를 넘긴 수령분은 {longPct}%) 길게 나눌수록
+            유리해져요.
           </li>
           <li>
             퇴직금 {wonKorean(EX2.severancePay)}·근속 {ex2.serviceYears}년 (고액·단기) —
@@ -184,30 +193,35 @@ export default function SeveranceTaxPage() {
           </tbody>
         </table>
 
-        <h3 className="t-h3 mt-8">IRP 연금 수령 시 감면</h3>
+        <h3 className="t-h3 mt-8">IRP 연금 수령 시 감면 (수령 연차별)</h3>
         <table className="table mt-2">
           <thead>
             <tr>
-              <th>연금 수령 기간</th>
+              <th>연금 수령 연차</th>
               <th className="num">감면율</th>
               <th className="num">부담 비율</th>
             </tr>
           </thead>
           <tbody>
-            {discountRows.map((row, i) => (
-              <tr key={`${row.payRate}`}>
-                <td>
-                  {ex1.irpOptions[i]?.label}
-                  {row.yearsMax === null ? (
-                    <span className="t-caption block">
-                      {ACTIVE_YEAR}년 이후 수령분부터 새로 적용
-                    </span>
-                  ) : null}
-                </td>
-                <td className="num">{pct(1 - row.payRate)}%</td>
-                <td className="num">{pct(row.payRate)}%</td>
-              </tr>
-            ))}
+            {discountRows.map((row, i) => {
+              const from = i === 0 ? 1 : (discountRows[i - 1].yearsMax ?? 0) + 1;
+              const range =
+                row.yearsMax === null ? `${from}년차부터` : `${from}~${row.yearsMax}년차`;
+              return (
+                <tr key={`${row.payRate}`}>
+                  <td>
+                    {range} 수령분
+                    {row.yearsMax === null ? (
+                      <span className="t-caption block">
+                        {ACTIVE_YEAR}년 이후 수령분부터 새로 적용
+                      </span>
+                    ) : null}
+                  </td>
+                  <td className="num">{pct(1 - row.payRate)}%</td>
+                  <td className="num">{pct(row.payRate)}%</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
@@ -221,13 +235,14 @@ export default function SeveranceTaxPage() {
         <h2 className="t-h2">결과를 어떻게 볼까요</h2>
         <p className="t-body-l">
           일시금으로 받으면 위 산식대로 계산된 세금을 떼고 받습니다. 퇴직금을 IRP로 이체하면
-          세금을 떼지 않고 미뤄 두었다가, 55세 이후 연금으로 받는 기간에 따라 이연된 세금의
-          일부만 부담해요. 특히{" "}
+          세금을 떼지 않고 미뤄 두었다가, 55세 이후 연금으로 받는 <strong>연차별로</strong>{" "}
+          이연된 세금의 일부만 부담해요. 특히{" "}
           <strong>
-            {ACTIVE_YEAR}년부터 {longYears}년 넘게 나눠 받으면 퇴직소득세가 {longPct}%
+            {ACTIVE_YEAR}년부터는 수령 {longYears}년차를 넘긴 금액부터 퇴직소득세가 {longPct}%
             감면됩니다
           </strong>{" "}
-          (소득세법 {rules.irp.pensionDiscount.source} — {ACTIVE_YEAR}년 신설). 다만 IRP에서
+          (소득세법 {rules.irp.pensionDiscount.source} — {ACTIVE_YEAR}년 신설. 전체 기간이 아니라
+          {longYears}년차 이후 <strong>수령분에</strong> 적용되는 감면이에요). 다만 IRP에서
           중간에 일시금으로 찾으면 감면이 사라지고 미뤄 둔 세금을 전부 내게 되니, 절세액은
           연금으로 끝까지 받는 경우의 계산으로 보셔야 해요. 실제 유불리는 수령 기간과 운용
           결과 등 개인 상황에 따라 달라질 수 있습니다.
@@ -244,11 +259,11 @@ export default function SeveranceTaxPage() {
           },
           {
             q: "IRP로 받으면 뭐가 좋나요?",
-            a: `퇴직금을 IRP 계좌로 이체하면 퇴직소득세를 바로 떼지 않고 미뤄 둡니다(과세이연). 이후 연금으로 나눠 받으면 이연된 세금의 ${discountRows.map((r) => `${pct(1 - r.payRate)}%`).join("/")}가 수령 기간에 따라 감면된 채로 나눠 부담해요. 이 계산기 기준으로는 퇴직금 ${wonKorean(EX1.severancePay)}·근속 ${ex1.serviceYears}년일 때 ${longYears}년 넘게 받으면 세금이 ${won(ex1Long.saving)} 줄어드는 것으로 계산됩니다.`,
+            a: `퇴직금을 IRP 계좌로 이체하면 퇴직소득세를 바로 떼지 않고 미뤄 둡니다(과세이연). 이후 연금으로 받으면 수령 연차별로 이연된 세금이 감면돼요 — 1~10년차 수령분 ${pct(1 - discountRows[0].payRate)}%, 11~20년차 ${pct(1 - discountRows[1].payRate)}%, 21년차부터 ${pct(1 - discountRows[2].payRate)}% 감면. 이 계산기 기준으로는 퇴직금 ${wonKorean(EX1.severancePay)}·근속 ${ex1.serviceYears}년일 때 ${ex1Long.label.replace(" 수령", "")}에 나눠 받으면(매년 같은 금액 가정) 세금이 ${won(ex1Long.saving)} 줄어드는 것으로 계산됩니다.`,
           },
           {
-            q: `${longYears}년 수령 ${longPct}% 감면(${ACTIVE_YEAR}년 신설)이 뭔가요?`,
-            a: `${ACTIVE_YEAR}년 1월 1일 이후 연금 수령분부터, 연금 수령 기간이 ${longYears}년을 넘으면 이연된 퇴직소득세의 ${longPct}%만 부담하는 규칙이 새로 생겼어요. 기존에는 10년 초과 수령 시 ${pct(1 - discountRows[1].payRate)}% 감면이 최대였는데, 더 길게 나눠 받을수록 감면이 커지도록 확대된 거예요.`,
+            q: `${longYears}년 초과 수령분 ${longPct}% 감면(${ACTIVE_YEAR}년 신설)이 뭔가요?`,
+            a: `${ACTIVE_YEAR}년 1월 1일 이후 연금 수령분부터, 연금 수령 ${longYears}년차를 넘겨 받는 금액에 대해서는 이연된 퇴직소득세의 ${pct(discountRows[2].payRate)}%만 부담하는(=${longPct}% 감면) 규칙이 새로 생겼어요. 수령 기간 전체가 아니라 ${longYears}년차 이후 수령분에 적용되는 감면이라, 예컨대 25년에 나눠 받으면 전체적으로는 약 ${Math.round((1 - ex1Long.payRate) * 100)}%가 감면되는 셈이에요. 길게 나눠 받을수록 감면이 커지도록 확대된 거예요.`,
           },
           {
             q: "IRP를 중간에 깨면 어떻게 되나요?",
@@ -265,7 +280,7 @@ export default function SeveranceTaxPage() {
         ]}
       />
 
-      <SourceBadge asOf={rules._meta.asOf} source="소득세법 (법제처 국가법령정보센터)" />
+      <SourceBadgeFromMeta meta={rules._meta} />
     </div>
   );
 }

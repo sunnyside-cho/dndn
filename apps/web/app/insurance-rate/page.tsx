@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AdSlot } from "@/components/AdSlot";
 import { FaqBlock } from "@/components/FaqBlock";
-import { SourceBadge } from "@/components/SourceBadge";
+import { SourceBadgeFromMeta } from "@/components/SourceBadge";
 import { insuranceRules as rules, nextYearRates, ACTIVE_YEAR } from "@/data/rules";
 import { computeInsuranceDiff } from "@/features/insurance-rate/engine";
 import { InsuranceRateCalculator } from "@/features/insurance-rate/components/Calculator";
@@ -19,12 +19,12 @@ const pct = (v: number) => `${(v * 100).toLocaleString("ko-KR", { maximumFractio
 
 export default function InsuranceRatePage() {
   const npTotal = rules.nationalPension.rateTotal.value;
-  const npNextTotal = rules.nationalPension.next2027?.value ?? null;
+  const npNextTotal = rules.nationalPension.nextYear?.value ?? null;
   const npEmployee = rules.nationalPension.rateEmployee.value;
   const npNextEmployee = nextYearRates.nationalPensionEmployee;
   const healthTotal = rules.healthInsurance.rateEmployee.value * 2;
   const employmentEmployee = rules.employmentInsurance.rateEmployee.value;
-  const baseRange = rules.nationalPension.baseMonthly.from_2026_07;
+  const baseRange = rules.nationalPension.baseMonthly.applied;
 
   // citable shell 예시 — 엔진으로 빌드 시 재계산 (rules 교체 시 예시 숫자도 자동 갱신).
   const ex300 = computeInsuranceDiff(
@@ -179,7 +179,7 @@ export default function InsuranceRatePage() {
         <p className="t-caption mt-1">
           출처: {rules.nationalPension.rateTotal.source} ·{" "}
           {rules.healthInsurance.rateEmployee.source} ·{" "}
-          {rules.healthInsurance.next2027?.source}
+          {rules.healthInsurance.nextYear?.source}
         </p>
       </section>
 
@@ -219,7 +219,7 @@ export default function InsuranceRatePage() {
         ]}
       />
 
-      <SourceBadge asOf={rules._meta.asOf} source="국민연금공단·건강보험공단 고시 및 발표" />
+      <SourceBadgeFromMeta meta={rules._meta} />
     </div>
   );
 }

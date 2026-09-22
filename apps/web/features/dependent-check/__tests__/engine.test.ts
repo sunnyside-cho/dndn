@@ -6,6 +6,7 @@ import { checkDependent, estimateRegionalPremium } from "../engine";
 // 기대값은 TOOL_SPEC_dependent-check.md 산식을 수기 계산한 값 (구현과 독립).
 
 const base: DependentInput = {
+  relationship: "family",
   hasBusinessRegistration: false,
   businessIncomeAnnual: 0,
   hasRentalIncome: false,
@@ -13,6 +14,25 @@ const base: DependentInput = {
   propertyTaxBase: 150_000_000,
   spouseMeetsIncome: null,
 };
+
+describe("checkDependent — 형제자매 관계 (재산 상한 1.8억 단일 기준, codex #4)", () => {
+  it("형제자매·과표 2억 → 탈락 (직계 기준 5.4억이 아니라 1.8억 적용)", () => {
+    const r = checkDependent({ ...base, relationship: "sibling", propertyTaxBase: 200_000_000 }, dependentRules);
+    expect(r.verdict).toBe("lose");
+    expect(r.reasons.join(" ")).toContain("형제자매");
+  });
+
+  it("형제자매·과표 1.5억 → 유지 + 연령·장애 요건 별도 확인 안내", () => {
+    const r = checkDependent({ ...base, relationship: "sibling", propertyTaxBase: 150_000_000 }, dependentRules);
+    expect(r.verdict).toBe("keep");
+    expect(r.reasons.join(" ")).toContain("별도 확인");
+  });
+
+  it("직계(family)·과표 2억 → 유지 (기존 tier 기준)", () => {
+    const r = checkDependent({ ...base, propertyTaxBase: 200_000_000 }, dependentRules);
+    expect(r.verdict).toBe("keep");
+  });
+});
 
 describe("checkDependent — 판정 게이트 (TOOL_SPEC 순서)", () => {
   it("전부 통과 → keep, estimatedPremium null, 통과 근거 노출", () => {

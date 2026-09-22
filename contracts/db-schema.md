@@ -27,7 +27,8 @@ DB 를 대신하는 유일한 데이터 저장소. **모든 제도 숫자는 이
 
 공통 구조 규약 (타입 정본은 `shared-types.ts` 의 `*Rules` 인터페이스):
 
-- 최상위 `_meta`: `{ year, status: "draft"|"confirmed", asOf: "YYYY-MM-DD", ... }` 필수.
+- 최상위 `_meta`: `{ year, status: "draft"|"confirmed"|"final", asOf: "YYYY-MM-DD", ... }` 필수
+  (`final` = 공식 원본 확정본 — 예: 국세청 간이세액표 변환본).
 - 각 수치는 `SourcedValue` 형태: `{ value, verified: "official"|"check"|"todo", source?, note? }`.
   - `official` = 고시·법령 원문 확인 / `check` = 비공식 교차확인만(공개 전 재확인 필수) /
     `todo` = 미확보(해당 값을 쓰는 화면은 단정 표현 금지).

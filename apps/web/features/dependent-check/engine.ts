@@ -61,8 +61,21 @@ export function checkDependent(input: DependentInput, rules: DependentRules): De
     passes.push(`연간 소득 합계가 ${wonKorean(incomeMax)} 이하예요 (공적연금 100% 반영 기준).`);
   }
 
-  // ⑤ 재산세 과세표준 — tier2 초과 즉시 탈락 / tier1~tier2 는 소득 1,000만 재확인
-  if (input.propertyTaxBase > tier2) {
+  // ⑤ 재산세 과세표준 — 형제자매는 단일 상한(1.8억), 그 외는 tier1/tier2 이중 기준
+  if (input.relationship === "sibling") {
+    const sibling = e.assetMax.sibling;
+    if (!sibling) throw new Error("dependent rules: assetMax.sibling 누락 (형제자매 재산 상한)");
+    if (input.propertyTaxBase > sibling.value) {
+      fails.push(
+        `형제자매의 피부양자는 재산세 과세표준이 ${wonKorean(sibling.value)} 이하여야 하는데, 이를 넘어요.`,
+      );
+    } else {
+      passes.push(
+        `재산세 과세표준이 형제자매 기준 ${wonKorean(sibling.value)} 이하예요. ` +
+          "다만 형제자매는 30세 미만·65세 이상·장애인 등에 해당해야 피부양자가 될 수 있어요 — 이 요건은 공단에서 별도 확인돼요.",
+      );
+    }
+  } else if (input.propertyTaxBase > tier2) {
     fails.push(`재산세 과세표준이 ${wonKorean(tier2)}을 넘으면 소득과 관계없이 제외돼요.`);
   } else if (input.propertyTaxBase > tier1) {
     if (input.annualIncome > TIER2_INCOME_MAX) {

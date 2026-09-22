@@ -22,7 +22,7 @@ export default function SalarySeniorPage() {
   const healthRate = rules.healthInsurance.rateEmployee.value;
   const empRate = rules.employmentInsurance.rateEmployee.value;
   const ltcFormula = rules.healthInsurance.longTermCare.formula;
-  const baseRange = rules.nationalPension.baseMonthly.from_2026_07;
+  const baseRange = rules.nationalPension.baseMonthly.applied;
   const taxPending = simplifiedTaxTable.rows.length === 0;
 
   // citable shell 예시 — 엔진으로 빌드 시 재계산 (rules 교체 시 숫자 자동 갱신).
@@ -190,7 +190,7 @@ export default function SalarySeniorPage() {
           },
           {
             q: "세금(소득세)은 왜 이만큼 떼나요?",
-            a: `월급에서 떼는 소득세는 국세청 '근로소득 간이세액표'에서 월급 구간과 부양가족 수로 정해지는 원천징수액이고, 지방소득세는 그 10%예요. 실제 세금은 다음 해 연말정산에서 정산되므로 매달 떼는 금액과 최종 세금은 다를 수 있어요.${taxPending ? " 지금 이 계산기는 간이세액표 수록 전이라 소득세를 계산에서 제외하고 있어요 — 정확한 금액은 홈택스 조견표(nts.go.kr)에서 확인할 수 있어요." : ""}`,
+            a: `월급에서 떼는 소득세는 국세청 '근로소득 간이세액표'에서 월급 구간과 부양가족 수로 정해지는 원천징수액이고, 지방소득세는 그 ${pct(rules.incomeTax?.localTaxRate.value ?? 0)}로 계산했어요(지방세법 조문 재확인 중). 실제 세금은 다음 해 연말정산에서 정산되므로 매달 떼는 금액과 최종 세금은 다를 수 있어요.${taxPending ? " 지금 이 계산기는 간이세액표 수록 전이라 소득세를 계산에서 제외하고 있어요 — 정확한 금액은 홈택스 조견표(nts.go.kr)에서 확인할 수 있어요." : ""}`,
           },
         ]}
       />

@@ -13,10 +13,9 @@ export function longTermCareRatio(rules: InsuranceRules): number {
   return Number(m[1]) / Number(m[2]);
 }
 
-/** 국민연금 기준소득월액 상하한 적용 (활성: from_2026_07 구간) */
+/** 국민연금 기준소득월액 상하한 적용 (baseMonthly.applied — 현재 적용 구간) */
 export function clampPensionBase(monthlySalary: number, rules: InsuranceRules): number {
-  const range = rules.nationalPension.baseMonthly.from_2026_07;
-  if (!range) throw new Error("insurance rules: baseMonthly.from_2026_07 누락");
+  const range = rules.nationalPension.baseMonthly.applied;
   return Math.min(Math.max(monthlySalary, range.min), range.max);
 }
 

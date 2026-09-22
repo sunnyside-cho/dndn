@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AdSlot } from "@/components/AdSlot";
 import { FaqBlock } from "@/components/FaqBlock";
-import { SourceBadge } from "@/components/SourceBadge";
+import { SourceBadgeFromMeta } from "@/components/SourceBadge";
 import { dependentRules as rules, ACTIVE_YEAR } from "@/data/rules";
 import { checkDependent, estimateRegionalPremium } from "@/features/dependent-check/engine";
 import { DependentCheckCalculator } from "@/features/dependent-check/components/Calculator";
@@ -21,6 +21,7 @@ const exampleBase = {
   annualIncome: 0,
   propertyTaxBase: 0,
   spouseMeetsIncome: null,
+  relationship: "family",
 } as const;
 
 export default function DependentCheckPage() {
@@ -28,6 +29,8 @@ export default function DependentCheckPage() {
   const tier1 = rules.dependentEligibility.assetMax.tier1.value;
   const tier2 = rules.dependentEligibility.assetMax.tier2.value;
   const sibling = rules.dependentEligibility.assetMax.sibling;
+  const tier2IncomeMax = rules.dependentEligibility.assetMax.tier2IncomeMax.value;
+  const unregisteredMax = rules.dependentEligibility.businessIncome.unregisteredMax.value;
   const rp = rules.regionalPremium;
   const healthRatePct = (rp.healthRate.value * 100).toFixed(2);
 
@@ -85,14 +88,14 @@ export default function DependentCheckPage() {
           </li>
           <li>
             <strong>사업소득</strong> — 사업자등록이 있으면 사업소득이 1원이라도 발생하는 즉시
-            제외돼요 (500만원 특례 없음). 등록이 없는 프리랜서 등은 연 500만원까지 허용돼요.
+            제외돼요 ({wonKorean(unregisteredMax)} 특례 없음). 등록이 없는 프리랜서 등은 연 {wonKorean(unregisteredMax)}까지 허용돼요.
           </li>
           <li>
             <strong>주택임대소득</strong> — 금액과 관계없이 있으면 제외돼요.
           </li>
           <li>
             <strong>재산세 과세표준 {wonKorean(tier1)} 이하</strong> — 넘더라도{" "}
-            {wonKorean(tier2)} 이하이면서 연간 소득이 1,000만원 이하면 유지돼요.{" "}
+            {wonKorean(tier2)} 이하이면서 연간 소득이 {wonKorean(tier2IncomeMax)} 이하면 유지돼요.{" "}
             {wonKorean(tier2)}을 넘으면 소득과 관계없이 제외돼요. 재산은 부부라도 각자 명의로
             판정해요.
           </li>
@@ -119,7 +122,7 @@ export default function DependentCheckPage() {
           </li>
           <li>
             연금 연 1,200만원, 과세표준 6억원: <strong>{verdictText(ex3.verdict)}</strong> — 재산이{" "}
-            {wonKorean(tier1)}~{wonKorean(tier2)} 구간이면 소득이 연 1,000만원 이하여야 하는데 이를
+            {wonKorean(tier1)}~{wonKorean(tier2)} 구간이면 소득이 연 {wonKorean(tier2IncomeMax)} 이하여야 하는데 이를
             넘어요. 예상 보험료는 월 약 <strong>{won(ex3Premium.monthlyTotal)}</strong> 수준이에요.
           </li>
         </ul>
@@ -150,7 +153,7 @@ export default function DependentCheckPage() {
             <tr>
               <td>재산요건 2단계</td>
               <td className="num">
-                {wonKorean(tier1)}~{wonKorean(tier2)} + 연소득 1,000만원 이하
+                {wonKorean(tier1)}~{wonKorean(tier2)} + 연소득 {wonKorean(tier2IncomeMax)} 이하
               </td>
             </tr>
             {sibling ? (
@@ -211,7 +214,7 @@ export default function DependentCheckPage() {
           },
           {
             q: "사업자등록을 내면 어떻게 되나요?",
-            a: "사업자등록이 있으면 사업소득이 1원이라도 발생하는 즉시 피부양자에서 제외돼요 — 연 500만원 특례가 없어요. 그 특례는 사업자등록이 없는 프리랜서 등에게만 적용돼요(연 500만원 이하 허용). 등록만 있고 소득이 전혀 없으면 유지될 수 있어요.",
+            a: `사업자등록이 있으면 사업소득이 1원이라도 발생하는 즉시 피부양자에서 제외돼요 — 연 ${wonKorean(unregisteredMax)} 특례가 없어요. 그 특례는 사업자등록이 없는 프리랜서 등에게만 적용돼요(연 ${wonKorean(unregisteredMax)} 이하 허용). 등록만 있고 소득이 전혀 없으면 유지될 수 있어요.`,
           },
           {
             q: "임대소득이 조금인데도 탈락하나요?",
@@ -232,7 +235,7 @@ export default function DependentCheckPage() {
         ]}
       />
 
-      <SourceBadge asOf={rules._meta.asOf} source="국민건강보험법 시행규칙·시행령 (법제처)" />
+      <SourceBadgeFromMeta meta={rules._meta} />
     </div>
   );
 }

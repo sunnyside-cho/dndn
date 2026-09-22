@@ -101,20 +101,34 @@ export function convertedTaxFor(taxBase: number, rules: SeveranceRules): number 
   return Math.round(rows[i].quick + (taxBase - prevMax) * rows[i].rate);
 }
 
-/** IrpOption.label — rows 의 yearsMax 로 조립 ("10년 이하"/"10~20년"/"20년 초과"). 리터럴 금지. */
-function irpLabelFor(
+/**
+ * IRP 실효 부담률 — 감면율은 "수령 기간 전체"가 아니라 **각 연차의 수령분**에 적용된다
+ * (소득세법 §129: 1~10년차 70% · 11~20년차 60% · 21년차~ 50% 부담 — codex 리뷰 #3).
+ * 균등 수령 가정으로 연차별 부담률을 가중평균한다. 예: 21년 수령 = (10×0.7+10×0.6+1×0.5)/21.
+ */
+export function irpEffectivePayRate(
+  years: number,
   rows: SeveranceRules["irp"]["pensionDiscount"]["rows"],
-  i: number,
-): string {
-  const cur = rows[i];
-  const prevMax = i > 0 ? rows[i - 1].yearsMax : null;
-  if (cur.yearsMax === null) {
-    if (prevMax === null)
-      throw new Error("IRP 감면 구간 순서가 잘못되었습니다 (yearsMax=null 은 마지막 구간이어야 함)");
-    return `${prevMax}년 초과`;
+): number {
+  if (years < 1) throw new Error(`수령 기간이 잘못되었습니다: ${years}년`);
+  let covered = 0;
+  let weighted = 0;
+  for (const row of rows) {
+    if (covered >= years) break;
+    const upper = row.yearsMax ?? years;
+    const span = Math.min(upper, years) - covered;
+    if (span > 0) {
+      weighted += span * row.payRate;
+      covered += span;
+    }
   }
-  return prevMax === null ? `${cur.yearsMax}년 이하` : `${prevMax}~${cur.yearsMax}년`;
+  if (covered < years)
+    throw new Error("IRP 감면 구간이 수령 기간을 덮지 못합니다 (yearsMax=null 구간 필요)");
+  return weighted / years;
 }
+
+/** 비교표에 보여줄 수령 기간 시나리오 (제도 숫자 아님 — 균등 수령 가정의 대표 기간) */
+export const IRP_SCENARIO_YEARS = [10, 15, 25] as const;
 
 // ---------------------------------------------------------------------------
 // 메인
@@ -144,13 +158,14 @@ export function computeSeverance(input: SeveranceInput, rules: SeveranceRules): 
   const totalTaxLump = incomeTax + localTax;
   const netLump = input.severancePay - totalTaxLump;
 
-  // 7) IRP 연금 수령 — 이연 세액(소득세+지방세) × payRate 부담 (rules.irp.pensionDiscount)
+  // 7) IRP 연금 수령 — 연차별 감면율의 균등 수령 가중평균(실효 부담률) × 이연 세액
   const discountRows = rules.irp.pensionDiscount.rows;
-  const irpOptions: IrpOption[] = discountRows.map((r, i) => {
-    const totalTax = Math.round(totalTaxLump * r.payRate);
+  const irpOptions: IrpOption[] = IRP_SCENARIO_YEARS.map((years) => {
+    const payRate = irpEffectivePayRate(years, discountRows);
+    const totalTax = Math.round(totalTaxLump * payRate);
     return {
-      label: irpLabelFor(discountRows, i),
-      payRate: r.payRate,
+      label: `${years}년 수령`,
+      payRate,
       totalTax,
       net: input.severancePay - totalTax,
       saving: totalTaxLump - totalTax,

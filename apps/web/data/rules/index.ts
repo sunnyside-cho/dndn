@@ -26,13 +26,13 @@ export const insuranceRules = insurance as unknown as InsuranceRules;
 /** 간이세액표 — rows 비어 있으면 미수록(소득세 '표 수록 전' 표시, 단정 금지) */
 export const simplifiedTaxTable = taxTable as unknown as SimplifiedTaxTable;
 
-/** 내년(2027) 확정분 — 현행 rules 파일의 next2027 필드에서 파생 (미발표 항목은 null) */
+/** 내년 확정분 — 현행 rules 파일의 nextYear 필드에서 파생 (미발표 항목은 null) */
 export const nextYearRates: NextYearRates = {
   year: ACTIVE_YEAR + 1,
-  nationalPensionEmployee: insuranceRules.nationalPension.next2027
-    ? insuranceRules.nationalPension.next2027.value / 2
+  nationalPensionEmployee: insuranceRules.nationalPension.nextYear
+    ? insuranceRules.nationalPension.nextYear.value / 2
     : null,
-  healthEmployee: insuranceRules.healthInsurance.next2027?.value ?? null,
+  healthEmployee: insuranceRules.healthInsurance.nextYear?.value ?? null,
   // 장기요양·고용은 연말 발표 — 발표 전 null (화면: "12월 발표 예정")
   longTermCareFormula: null,
   employmentEmployee: null,

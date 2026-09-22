@@ -3,7 +3,8 @@
     "year": 2026,
     "status": "draft",
     "asOf": "2026-09-21",
-    "note": "4대보험 근로자 부담 요율. 미검증: 간이세액표 2026.3 개정 국세청 원문, 임의계속가입 공제 구조"
+    "note": "4대보험 근로자 부담 요율. 미검증: 간이세액표 2026.3 개정 국세청 원문, 임의계속가입 공제 구조",
+    "sourceLabel": "국민연금공단·건강보험공단 고시"
   },
   "nationalPension": {
     "rateTotal": {
@@ -13,16 +14,20 @@
       "source": "korea.kr 148957270"
     },
     "rateEmployee": {
-      "value": 0.0475
+      "value": 0.0475,
+      "verified": "official",
+      "note": "총요율 9.5%의 절반 (근로자 부담)"
     },
     "baseMonthly": {
-      "until_2026_06": {
-        "min": 400000,
-        "max": 6370000
-      },
-      "from_2026_07": {
+      "applied": {
         "min": 410000,
-        "max": 6590000
+        "max": 6590000,
+        "from": "2026-07-01"
+      },
+      "previous": {
+        "min": 400000,
+        "max": 6370000,
+        "until": "2026-06-30"
       },
       "verified": "official",
       "source": "NPS 공지"
@@ -32,7 +37,13 @@
       "note": "60세 이상 사업장가입 제외 → 공제 0 (임의계속가입은 옵션, 기본 OFF)",
       "verified": "official"
     },
-    "next2027": {
+    "exemptAgeMin": {
+      "value": 60,
+      "verified": "official",
+      "source": "국민연금법 제8조 — 사업장가입자는 60세 미만",
+      "note": "이 나이 이상이면 사업장가입 제외 → 공제 0 (age60Exempt 참조)"
+    },
+    "nextYear": {
       "value": 0.1,
       "note": "법률상 확정"
     }
@@ -48,7 +59,7 @@
       "formula": "건강보험료 본인부담분 × 0.9448/7.19",
       "verified": "official"
     },
-    "next2027": {
+    "nextYear": {
       "value": 0.03595,
       "note": "7.19% 동결 기결정 (총요율의 절반)",
       "verified": "official",
@@ -60,7 +71,7 @@
       "value": 0.009,
       "verified": "official"
     },
-    "pending2027": {
+    "pendingNextYear": {
       "note": "2.0%(근로자 1.0%) 인상안 심의 중 — 12월 모니터링 항목",
       "verified": "check"
     }

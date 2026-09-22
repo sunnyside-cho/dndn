@@ -28,7 +28,8 @@ export function computeSalarySenior(
   taxTable: SimplifiedTaxTable,
 ): SalarySeniorResult {
   const gross = input.monthlySalary;
-  const age60Plus = input.age >= 60;
+  // 면제 시작 나이도 rules 에서 (경계 포함 — codex #7: 제도 숫자 하드코딩 금지)
+  const age60Plus = input.age >= rules.nationalPension.exemptAgeMin.value;
 
   const nationalPension = nationalPensionPremium(gross, age60Plus, rules);
   const health = healthPremium(gross, rules);
@@ -59,16 +60,17 @@ export function computeSalarySenior(
     const localTaxRate = rules.incomeTax?.localTaxRate.value;
     if (localTaxRate === undefined)
       throw new Error("insurance rules: incomeTax.localTaxRate 누락 (지방소득세율)");
-    const depIdx = Math.min(input.dependents, 11) - 1;
+    // 열 수(공제대상가족수 상한)는 표 데이터에서 파생 (codex #7 — 11 하드코딩 금지)
+    const depIdxFor = (cols: number) => Math.min(input.dependents, cols) - 1;
     const row = taxTable.rows.find(
       (r) => gross >= r.min && (r.max === null || gross < r.max),
     );
     const o = taxTable.overflow;
     if (row) {
-      incomeTax = row.byDependents[depIdx] ?? 0;
+      incomeTax = row.byDependents[depIdxFor(row.byDependents.length)] ?? 0;
     } else if (o && gross >= o.baseAt) {
       // 표 상단 초과 — 국세청 표 하단 산식 (tiers 는 "min 초과 ~ max 이하" 규약)
-      const base = o.baseByDependents[depIdx] ?? 0;
+      const base = o.baseByDependents[depIdxFor(o.baseByDependents.length)] ?? 0;
       if (gross === o.baseAt) {
         incomeTax = base;
       } else {
@@ -76,7 +78,7 @@ export function computeSalarySenior(
         if (!tier) throw new Error(`간이세액표 초과 구간을 찾을 수 없습니다 (월급 ${gross})`);
         const excess = gross - tier.min;
         incomeTax =
-          base + tier.fixed + Math.round(excess * (tier.applyRate98 ? 0.98 : 1) * tier.rate);
+          base + tier.fixed + Math.round(excess * tier.adjustRate * tier.rate);
       }
     } else {
       // 표 범위 밖인데 초과 산식 데이터도 없다 — 0 으로 조용히 두지 않는다.

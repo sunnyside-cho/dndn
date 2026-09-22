@@ -107,18 +107,22 @@ function ResultView({
     .filter((row) => row.nextMonthly === null)
     .map((row) => ITEM_LABEL[row.item]);
 
+  // partial 이면 "최소 X 인상" 같은 단정을 피한다 — 미발표 항목은 오를 수도 내릴 수도 있다 (codex #6)
   const headline =
     r.totalDiffMonthly > 0
-      ? `${r.partial ? "지금까지 확정된 인상분만으로 " : ""}내년엔 월 ${won(r.totalDiffMonthly)} 더 냅니다 (연 ${won(r.totalDiffAnnual)})`
+      ? `${r.partial ? "확정된 항목 기준으로 " : ""}내년엔 월 ${won(r.totalDiffMonthly)} 더 냅니다 (연 ${won(r.totalDiffAnnual)})`
       : r.totalDiffMonthly === 0
-        ? "지금까지 확정된 기준으로는 내년 공제액이 지금과 같아요"
-        : `${r.partial ? "지금까지 확정된 기준으로 " : ""}내년엔 월 ${won(-r.totalDiffMonthly)} 덜 냅니다`;
+        ? "확정된 항목 기준으로는 내년 공제액이 지금과 같아요"
+        : `${r.partial ? "확정된 항목 기준으로 " : ""}내년엔 월 ${won(-r.totalDiffMonthly)} 덜 냅니다`;
 
   return (
     <div>
       <ResultCard tool="insurance-rate" headline={headline}>
         {pendingLabels.length > 0 ? (
-          <p className="t-body-l mt-2 mb-0">{pendingLabels.join("·")}은 12월 발표 예정이에요.</p>
+          <p className="t-body-l mt-2 mb-0">
+            {pendingLabels.join("·")}은 12월 발표 예정이라 아직 계산에 없어요 — 발표되면 총
+            차액이 달라질 수 있어요.
+          </p>
         ) : null}
         <table className="table mt-4">
           <thead>
