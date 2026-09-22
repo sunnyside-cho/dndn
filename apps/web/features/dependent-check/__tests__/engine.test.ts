@@ -132,15 +132,36 @@ describe("estimateRegionalPremium — 간이 추정 앵커", () => {
     propertyTaxBase: 150_000_000,
   };
 
-  it("앵커: 연금 연 1,200만·과표 1.5억 → 건보 92,632 / 장기요양 12,172 / 합계 104,804", () => {
-    // 소득분 = 12,000,000×0.5×0.0719÷12 = 35,950
-    // 재산금액 = 1.5억−1억 = 5,000만 → 4,500만 초과~5,020만 이하 등급 268점 × 211.5 = 56,682
+  // 기대값 = 공단 지역보험료 모의계산 실측 (2026-09-22, VERIFICATION.md):
+  // ③재산분 원 미만 절사 · ④건보료 = floor10(소득분+재산분) · ⑤장기요양 = floor10(④×비율)
+  it("공단 실측 1: 연금 연 1,200만·과표 1.5억 → 92,630 / 12,170 / 104,800", () => {
+    // 소득분 35,950 · 재산 268점×211.5 = 56,682 → floor10(92,632) = 92,630
     const r = estimateRegionalPremium(anchor, dependentRules);
-    expect(r.monthlyHealth).toBe(92_632);
-    // 92,632 × (0.009448/0.0719) = 12,172.28 → 12,172
-    expect(r.monthlyLongTermCare).toBe(12_172);
-    expect(r.monthlyTotal).toBe(104_804);
+    expect(r.monthlyHealth).toBe(92_630);
+    expect(r.monthlyLongTermCare).toBe(12_170);
+    expect(r.monthlyTotal).toBe(104_800);
     expect(r.note).toContain("간이 추정");
+  });
+
+  it("공단 실측 2: 기타소득 연 2,400만·과표 3억 → 267,730 / 35,180 / 302,910", () => {
+    const r = estimateRegionalPremium(
+      { annualWorkPensionIncome: 0, annualOtherIncome: 24_000_000, propertyTaxBase: 300_000_000 },
+      dependentRules,
+    );
+    expect(r.monthlyHealth).toBe(267_730); // 143,800 + 586점×211.5=123,939 → floor10
+    expect(r.monthlyLongTermCare).toBe(35_180);
+    expect(r.monthlyTotal).toBe(302_910);
+  });
+
+  it("공단 실측 3: 소득 0·과표 5억 — 최저보험료는 '소득분'에 적용된다 (총액 하한 아님)", () => {
+    const r = estimateRegionalPremium(
+      { annualWorkPensionIncome: 0, annualOtherIncome: 0, propertyTaxBase: 500_000_000 },
+      dependentRules,
+    );
+    // 소득분 max(0, 20,160) = 20,160 + 재산 757점→floor(160,105.5)=160,105 → floor10(180,265)
+    expect(r.monthlyHealth).toBe(180_260);
+    expect(r.monthlyLongTermCare).toBe(23_680);
+    expect(r.monthlyTotal).toBe(203_940);
   });
 
   it("과표가 기본공제(1억) 이하면 재산분 0 — 소득분만 부과", () => {
@@ -148,12 +169,14 @@ describe("estimateRegionalPremium — 간이 추정 앵커", () => {
     expect(r.monthlyHealth).toBe(35_950);
   });
 
-  it("소득·재산 0 → 하한(monthlyMin)으로 클램프", () => {
+  it("소득·재산 0 → 소득분 최저보험료(20,160)만 부과", () => {
     const r = estimateRegionalPremium(
       { annualWorkPensionIncome: 0, annualOtherIncome: 0, propertyTaxBase: 0 },
       dependentRules,
     );
     expect(r.monthlyHealth).toBe(dependentRules.regionalPremium.monthlyMin.value);
+    expect(r.monthlyLongTermCare).toBe(2_640); // floor10(20,160×0.9448/7.19 = 2,649.3)
+    expect(r.monthlyTotal).toBe(22_800);
   });
 
   it("거대 소득 → 상한(monthlyMax)으로 클램프", () => {
@@ -192,7 +215,7 @@ describe("DoD: rules 파일 교체만으로 판정·보험료가 바뀐다 (하�
       { annualWorkPensionIncome: 12_000_000, annualOtherIncome: 0, propertyTaxBase: 150_000_000 },
       doubled,
     );
-    // 소득분 35,950 + 재산분 268×423 = 113,364 (56,682 의 2배) → 149,314
-    expect(r.monthlyHealth).toBe(149_314);
+    // 소득분 35,950 + 재산분 268×423 = 113,364 (56,682 의 2배) → floor10(149,314) = 149,310
+    expect(r.monthlyHealth).toBe(149_310);
   });
 });

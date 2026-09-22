@@ -341,16 +341,21 @@
     },
     "monthlyMin": {
       "value": 20160,
-      "verified": "check",
-      "note": "고시 원문 대조 미완"
+      "verified": "official",
+      "note": "소득월액보험료 최저 — 소득이 없어도 소득분에 20,160원 부과 (총액 하한 아님). 공단 모의계산 실측 확인 2026-09-22"
     },
     "monthlyMax": {
       "value": 4591740,
-      "verified": "check"
+      "verified": "check",
+      "note": "고시 원문 대조 미완 · 적용 위치(소득분/총액) 미확인 — 총액에 보수적 적용"
     },
     "jeonseDeposit": {
       "note": "무주택자 보증금 30% 평가 — 통설, 원문 미확인",
       "verified": "check"
+    },
+    "rounding": {
+      "note": "공단 실측(2026-09-22): 재산분 원 미만 절사, 건보료·장기요양 10원 미만 절사",
+      "verified": "official"
     }
   },
   "verifyAgainst": "https://www.nhis.or.kr/nhis/minwon/retrieveLocalCalcView.do (지역보험료 모의계산)"

@@ -109,23 +109,28 @@ export function checkDependent(input: DependentInput, rules: DependentRules): De
   return { verdict, reasons: verdict === "lose" ? fails : passes, estimatedPremium: null };
 }
 
-// 지역보험료 간이 추정 (TOOL_SPEC 산식):
-//   소득분(월) = (근로·연금×50% + 그 외×100%) × 건보요율 ÷ 12
-//   재산분(월) = 재산금액(과표 − 기본공제 1억) → 60등급표 점수 × 점수당 금액(211.5원)
-//   장기요양(월) = 건강보험료 × (장기요양요율 ÷ 건보요율)
-// monthlyMin/monthlyMax 는 verified "check"(고시 원문 대조 미완) — 결과는 항상 "간이 추정" 문구 동반.
+// 지역보험료 간이 추정 — 공단 모의계산 실측(2026-09-22, VERIFICATION.md 3케이스)으로 확정한 규칙:
+//   소득분(월) = floor[(근로·연금×50% + 그 외×100%) × 건보요율 ÷ 12], **최저보험료는 소득분에
+//   적용**(소득이 없어도 20,160원 — 총액 하한이 아님. 공단 실측 케이스 3에서 확인)
+//   재산분(월) = floor[60등급표 점수 × 점수당 금액] (원 미만 절사 — 예: 160,105.5 → 160,105)
+//   건강보험료 = floor10(소득분 + 재산분) · 장기요양 = floor10(건보료 × 요율비) — 10원 미만 절사
 export function estimateRegionalPremium(
   input: RegionalPremiumInput,
   rules: DependentRules,
 ): RegionalPremiumEstimate {
   const rp = rules.regionalPremium;
   const notes: string[] = [];
+  const floor10 = (v: number) => Math.floor(v / 10) * 10;
 
-  const monthlyIncomePart =
-    ((input.annualWorkPensionIncome * rp.incomeReflection.halfRate.value +
-      input.annualOtherIncome * rp.incomeReflection.fullRate.value) *
-      rp.healthRate.value) /
-    12;
+  const monthlyIncomePart = Math.max(
+    Math.floor(
+      ((input.annualWorkPensionIncome * rp.incomeReflection.halfRate.value +
+        input.annualOtherIncome * rp.incomeReflection.fullRate.value) *
+        rp.healthRate.value) /
+        12,
+    ),
+    rp.monthlyMin.value,
+  );
 
   let monthlyAssetPart = 0;
   const table = rp.assetPointTable;
@@ -137,15 +142,16 @@ export function estimateRegionalPremium(
     if (assetAmount > 0) {
       // 오름차순 등급표 — 재산금액 이하(max ≥ 금액)인 첫 행, max=null 은 최고 등급
       const row = table.rows.find((r) => r.max === null || assetAmount <= r.max);
-      monthlyAssetPart = (row?.points ?? 0) * rp.assetPointPrice.value;
+      monthlyAssetPart = Math.floor((row?.points ?? 0) * rp.assetPointPrice.value);
     }
   }
 
+  // 상한은 적용 위치(소득분/총액) 미확인 — 총액에 보수적으로 적용 (verified check 유지)
   const monthlyHealth = Math.min(
-    Math.max(Math.round(monthlyIncomePart + monthlyAssetPart), rp.monthlyMin.value),
+    floor10(monthlyIncomePart + monthlyAssetPart),
     rp.monthlyMax.value,
   );
-  const monthlyLongTermCare = Math.round(
+  const monthlyLongTermCare = floor10(
     monthlyHealth * (rp.longTermCareRate.value / rp.healthRate.value),
   );
 
