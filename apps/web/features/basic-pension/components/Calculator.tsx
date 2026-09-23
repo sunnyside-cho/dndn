@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import type { BasicPensionResult } from "@contracts/shared-types";
 import { Disclaimer } from "@/components/Disclaimer";
+import { OfficialLink } from "@/components/OfficialLink";
 import { ResultCard } from "@/components/ResultCard";
 import { ChoiceGroup, MoneyField, StepShell } from "@/components/wizard";
 import { basicPensionRules } from "@/data/rules";
@@ -412,7 +413,11 @@ function ResultView({
 
   return (
     <div>
-      <ResultCard tool="basic-pension" headline={headline}>
+      <ResultCard
+        tool="basic-pension"
+        timeBadge={preview ? "현재 기준 가정 계산" : `${year}년 기준`}
+        headline={headline}
+      >
         {preview ? (
           <p className="t-body-l mb-0 mt-1">
             {birthYear}년생은 <strong>{reachYear}년</strong>에 만 {ageMin}세가 돼요 (D-
@@ -501,6 +506,8 @@ function ResultView({
           </p>
         )}
       </div>
+
+      <OfficialLink tool="basic-pension" />
 
       <Disclaimer>실제 수급 여부와 금액은 국민연금공단 심사에 따라 달라질 수 있습니다.</Disclaimer>
 

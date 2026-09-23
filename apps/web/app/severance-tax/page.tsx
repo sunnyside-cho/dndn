@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { SeveranceInput } from "@contracts/shared-types";
 import { AdSlot } from "@/components/AdSlot";
+import { AudienceLabel } from "@/components/AudienceLabel";
 import { FaqBlock } from "@/components/FaqBlock";
 import { SourceBadgeFromMeta } from "@/components/SourceBadge";
 import { severanceRules as rules, ACTIVE_YEAR } from "@/data/rules";
@@ -82,6 +83,11 @@ export default function SeveranceTaxPage() {
       <p className="t-body mt-2">
         입력하신 금액과 날짜는 서버로 전송되지 않고 이 화면 안에서만 계산됩니다.
       </p>
+
+      <AudienceLabel>
+        퇴직이 확정되어 수령 방법을 정해야 하는 분, 그리고 몇 년 뒤 퇴직을 앞두고 미리 계산해
+        보려는 분께요 — 퇴직 예정일을 넣으면 예정 기준으로 계산돼요.
+      </AudienceLabel>
 
       {/* 계산기 (클라이언트) */}
       <div className="mt-8">

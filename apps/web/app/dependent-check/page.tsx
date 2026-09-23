@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AdSlot } from "@/components/AdSlot";
+import { AudienceLabel } from "@/components/AudienceLabel";
 import { FaqBlock } from "@/components/FaqBlock";
 import { SourceBadgeFromMeta } from "@/components/SourceBadge";
 import { dependentRules as rules, ACTIVE_YEAR } from "@/data/rules";
@@ -68,8 +69,15 @@ export default function DependentCheckPage() {
         한 번에 확인할 수 있습니다.
       </p>
       <p className="t-body mt-2">
-        입력하신 소득·재산은 서버로 전송되지 않고 이 화면 안에서만 계산됩니다.
+        입력하신 소득·재산은 서버로 전송되지 않고 이 화면 안에서만 계산됩니다. 아직 은퇴
+        전이라면 첫 질문에서 &lsquo;은퇴 후 기준&rsquo;을 골라 예상 소득으로 미리 확인할 수
+        있어요.
       </p>
+
+      <AudienceLabel>
+        부모님을 자녀 직장보험에 얹으려는 가족, 그리고 &lsquo;은퇴하면 얹힐 수 있을까&rsquo;
+        미리 확인해 보려는 분께요.
+      </AudienceLabel>
 
       {/* 계산기 (클라이언트) */}
       <div className="mt-8">

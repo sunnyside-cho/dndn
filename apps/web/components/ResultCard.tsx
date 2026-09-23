@@ -4,14 +4,18 @@ import type { ToolId } from "@contracts/shared-types";
 import { track } from "@/lib/analytics";
 import { SITE, toolMeta } from "@/lib/site";
 
-// F-05 결과 카드 — 판정 헤드라인 + 내용 + 공유·이미지 저장·인쇄 (design-guide 고정 컴포넌트)
+// F-05 결과 카드 — 시점 배지 + 판정 헤드라인 + 내용 + 공유·이미지 저장·인쇄 (design-guide 고정 컴포넌트)
 export function ResultCard({
   tool,
   headline,
+  timeBadge,
   children,
 }: {
   tool: ToolId;
   headline: string;
+  /** 공통 신뢰 장치 ② (PERSONA_TIMING.md) — "2026년 기준" / 미래형 "현재 기준 가정 계산" 등.
+   *  연도는 각 도구 rules `_meta.year` 에서 — 수기 연도 금지. */
+  timeBadge: string;
   children: ReactNode;
 }) {
   const captureRef = useRef<HTMLDivElement>(null);
@@ -60,6 +64,11 @@ export function ResultCard({
         data-capture
         className="rounded-[var(--radius-lg)] border-2 border-[var(--border-strong)] p-6 sm:p-8"
       >
+        <p className="t-label mb-3 mt-0">
+          <span className="inline-block rounded-full border border-[var(--border)] px-3 py-1.5">
+            {timeBadge}
+          </span>
+        </p>
         <h2 className="t-h2 mt-0">{headline}</h2>
         {children}
         <p className="t-caption mb-0 mt-4">{SITE.name} · {SITE.baseUrl.replace("https://", "")}{meta.path}</p>

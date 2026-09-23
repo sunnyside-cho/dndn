@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { InsuranceItem, InsuranceRateResult } from "@contracts/shared-types";
 import { Disclaimer } from "@/components/Disclaimer";
+import { OfficialLink } from "@/components/OfficialLink";
 import { ResultCard } from "@/components/ResultCard";
 import { ChoiceGroup, MoneyField, StepShell } from "@/components/wizard";
 import { insuranceRules, nextYearRates } from "@/data/rules";
@@ -117,7 +118,11 @@ function ResultView({
 
   return (
     <div>
-      <ResultCard tool="insurance-rate" headline={headline}>
+      <ResultCard
+        tool="insurance-rate"
+        timeBadge={`${insuranceRules._meta.year}년 기준`}
+        headline={headline}
+      >
         {pendingLabels.length > 0 ? (
           <p className="t-body-l mt-2 mb-0">
             {pendingLabels.join("·")}은 12월 발표 예정이라 아직 계산에 없어요 — 발표되면 총
@@ -171,6 +176,8 @@ function ResultView({
         ) : null}
         <p className="t-caption mt-3 mb-0">이 표는 발표 즉시 갱신됩니다.</p>
       </ResultCard>
+
+      <OfficialLink tool="insurance-rate" />
 
       <Disclaimer>
         실제 공제액은 회사가 신고한 보수월액과 연말 정산에 따라 달라질 수 있습니다.

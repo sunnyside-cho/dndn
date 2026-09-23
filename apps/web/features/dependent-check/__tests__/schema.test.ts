@@ -40,3 +40,18 @@ describe("dependent schema 매핑", () => {
     expect(toEngineInput(parent).relationship).toBe("family");
   });
 });
+
+// TOOL_SPEC v1.1 (REVIEW V-3) — 0단계 시점 선택: 문구·배지만 전환하고 계산은 동일해야 한다
+describe("basis(시점 선택)", () => {
+  it("기본값은 current", () => {
+    expect(dependentFormSchema.parse(dependentFormDefaults).basis).toBe("current");
+  });
+
+  it("retired 여도 엔진·보험료 입력은 current 와 동일하다 (계산 분기 금지)", () => {
+    const base = { ...dependentFormDefaults, workPensionIncome: 1200, propertyTaxBase: 15000 };
+    const cur = dependentFormSchema.parse(base);
+    const ret = dependentFormSchema.parse({ ...base, basis: "retired" });
+    expect(toEngineInput(ret)).toEqual(toEngineInput(cur));
+    expect(toPremiumInput(ret)).toEqual(toPremiumInput(cur));
+  });
+});

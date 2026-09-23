@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AdSlot } from "@/components/AdSlot";
+import { AudienceLabel } from "@/components/AudienceLabel";
 import { FaqBlock } from "@/components/FaqBlock";
 import { SourceBadgeFromMeta } from "@/components/SourceBadge";
 import { basicPensionRules as rules, ACTIVE_YEAR } from "@/data/rules";
@@ -78,6 +79,11 @@ export default function BasicPensionPage() {
       <p className="t-body mt-2">
         입력하신 소득·재산은 서버로 전송되지 않고 이 화면 안에서만 계산됩니다.
       </p>
+
+      <AudienceLabel>
+        지금 자격이 궁금한 만 65세 전후 분, 그리고 &lsquo;나중에 받을 수 있을까&rsquo; 미리
+        보고 싶은 50~60대 분께요 — 65세 미만도 예비 계산으로 끝까지 계산해 드려요.
+      </AudienceLabel>
 
       {/* 계산기 (클라이언트) */}
       <div className="mt-8">

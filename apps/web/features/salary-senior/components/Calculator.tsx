@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import type { SalarySeniorResult } from "@contracts/shared-types";
 import { Disclaimer } from "@/components/Disclaimer";
+import { OfficialLink } from "@/components/OfficialLink";
 import { ResultCard } from "@/components/ResultCard";
 import { MoneyField, StepShell } from "@/components/wizard";
 import { insuranceRules, simplifiedTaxTable } from "@/data/rules";
@@ -140,7 +141,11 @@ function ResultView({
 
   return (
     <div>
-      <ResultCard tool="salary-senior" headline={headline}>
+      <ResultCard
+        tool="salary-senior"
+        timeBadge={`${insuranceRules._meta.year}년 기준`}
+        headline={headline}
+      >
         {taxPending ? (
           <p className="t-body-l mt-3 mb-0">
             소득세·지방소득세를 빼기 전 금액은 월 <strong>{won(r.net)}</strong>이에요.{" "}
@@ -194,6 +199,8 @@ function ResultView({
           </p>
         ))}
       </ResultCard>
+
+      <OfficialLink tool="salary-senior" />
 
       <Disclaimer>
         실제 공제액은 회사의 신고 내용과 연말정산에 따라 달라질 수 있습니다.

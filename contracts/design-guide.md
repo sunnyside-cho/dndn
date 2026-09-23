@@ -26,8 +26,10 @@ AX Mono `:root` 토큰(ink 스케일·역할·radius·spacing·모션·focus-rin
 
 | 컴포넌트 | 규칙 |
 |---|---|
-| `ResultCard` | 판정 헤드라인(`.t-h2`+`--text-primary`) → 금액 강조(`.t-display` 급) → 근거 접기(`<details>`) → 공유·이미지저장·인쇄 버튼 행. 캡처 대상 영역에 `data-capture` 속성 |
+| `ResultCard` | **시점 배지**(`timeBadge` 필수 — 공통 신뢰 장치 ②, PERSONA_TIMING.md: 기본 `{rules._meta.year}년 기준`, 미래형은 "현재 기준 가정 계산"/"은퇴 후 가정 계산"/"예정 기준 시뮬레이션" — 연도 수기 금지) → 판정 헤드라인(`.t-h2`+`--text-primary`) → 금액 강조(`.t-display` 급) → 근거 접기(`<details>`) → 공유·이미지저장·인쇄 버튼 행. 캡처 대상 영역에 `data-capture` 속성(배지 포함) |
 | `SourceBadge` | `기준일 {asOf} · 출처 {기관}` — rules `_meta` 에서 자동, 수기 금지. `.t-caption`, 전 도구·글 하단 |
+| `AudienceLabel` | 공통 신뢰 장치 ① (PERSONA_TIMING.md) — "이런 분께 맞아요 — {페르소나 1줄}". 전 도구 페이지 계산기 바로 위, 서버렌더. `--surface-subtle` 면 |
+| `OfficialLink` | 공통 신뢰 장치 ③ (PERSONA_TIMING.md) — 결과 화면 Disclaimer 위에 공식 계산기(복지로·홈택스·건보공단·4insure) 링크 병기. 심층 링크 금지(개편 시 404) — 기관 메인 URL + 경로 안내 |
 | `FaqBlock` | 질문형 H2 + `<details>` 직답. 서버렌더 필수(citable). 펼침 시 `faq_open` 이벤트 |
 | `Disclaimer` | "본 계산은 참고용이며 법적 효력이 없습니다" + 도구별 문구. `--surface-subtle` 면 |
 | `AffiliateSlot` | 12월까지 `enabled=false` (렌더 안 함). 활성 시 "광고" 라벨 내장 — 라벨 없는 변형 금지 |

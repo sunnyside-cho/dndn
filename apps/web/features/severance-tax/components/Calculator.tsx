@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { SeveranceResult, SeveranceRules } from "@contracts/shared-types";
 import { AffiliateSlot } from "@/components/AffiliateSlot";
 import { Disclaimer } from "@/components/Disclaimer";
+import { OfficialLink } from "@/components/OfficialLink";
 import { ResultCard } from "@/components/ResultCard";
 import { ChoiceGroup, MoneyField, StepShell } from "@/components/wizard";
 import { severanceRules } from "@/data/rules";
@@ -22,9 +23,17 @@ import {
 
 const TOTAL_STEPS = 3;
 
+/** 로컬(KST) 오늘 날짜 — toISOString 은 UTC 라 자정 전후 하루가 어긋난다 */
+function localTodayIso(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function SeveranceCalculator() {
   const [step, setStep] = useState(0);
   const [result, setResult] = useState<SeveranceResult | null>(null);
+  // 퇴직예정일이 미래(V-4): "예정 기준 시뮬레이션" 배지 + 55세 미만 IRP 제약 안내 분기
+  const [futureLeave, setFutureLeave] = useState(false);
   const rules = severanceRules;
 
   const {
@@ -46,6 +55,7 @@ export function SeveranceCalculator() {
   const restart = () => {
     reset(severanceFormDefaults);
     setResult(null);
+    setFutureLeave(false);
     setStep(0);
   };
 
@@ -59,12 +69,13 @@ export function SeveranceCalculator() {
     // trigger 통과 후이므로 parse 는 항상 성공 — coerce(문자열→숫자)를 여기서 확정한다.
     const values = severanceFormSchema.parse(getValues());
     const r = computeSeverance(toEngineInput(values), rules);
+    setFutureLeave(values.leaveDate > localTodayIso());
     setResult(r);
     track({ name: "calc_complete", params: { tool: "severance-tax" } });
   };
 
   if (result) {
-    return <ResultView result={result} rules={rules} onRestart={restart} />;
+    return <ResultView result={result} rules={rules} futureLeave={futureLeave} onRestart={restart} />;
   }
 
   return (
@@ -91,7 +102,7 @@ export function SeveranceCalculator() {
           step={1}
           total={TOTAL_STEPS}
           title="언제부터 언제까지 일하셨나요?"
-          help="근속연수는 자동으로 계산해 드려요 — 1년 미만은 1년으로 올려서 계산합니다. 중간정산을 받으셨다면 정산 이후 날짜부터 적어 주세요."
+          help="근속연수는 자동으로 계산해 드려요 — 1년 미만은 1년으로 올려서 계산합니다. 중간정산을 받으셨다면 정산 이후 날짜부터 적어 주세요. 아직 퇴직 전이면 예정일을 넣어 주세요 — 예정 기준으로 계산해 드려요."
           onBack={back}
           onNext={() => next(["joinDate", "leaveDate"])}
         >
@@ -173,10 +184,12 @@ function DateField({
 function ResultView({
   result,
   rules,
+  futureLeave,
   onRestart,
 }: {
   result: SeveranceResult;
   rules: SeveranceRules;
+  futureLeave: boolean;
   onRestart: () => void;
 }) {
   const r = result;
@@ -191,7 +204,19 @@ function ResultView({
 
   return (
     <div>
-      <ResultCard tool="severance-tax" headline={headline}>
+      <ResultCard
+        tool="severance-tax"
+        timeBadge={futureLeave ? "예정 기준 시뮬레이션" : `${rules._meta.year}년 기준`}
+        headline={headline}
+      >
+        {futureLeave ? (
+          <p className="t-body-l mb-0 mt-1">
+            아직 퇴직 전이시네요 — 입력하신 <strong>퇴직 예정일</strong>과 지금(
+            {rules._meta.year}년) 세법 기준의 시뮬레이션이에요. 실제 세액은 퇴직하는 해의
+            법령으로 정산돼요. 퇴직 시점에 <strong>만 55세 미만</strong>이라면 퇴직금은 IRP 등
+            연금계좌로 의무이체되고, 연금 개시는 만 55세부터 신청할 수 있어요.
+          </p>
+        ) : null}
         <details className="mt-4">
           <summary className="t-h4 min-h-12 cursor-pointer py-2">계산 근거 보기</summary>
           <table className="table mt-2">
@@ -341,6 +366,8 @@ function ResultView({
         href="#"
         label="IRP 계좌 비교해보기"
       />
+
+      <OfficialLink tool="severance-tax" />
 
       <Disclaimer>
         실제 세액은 퇴직 시점의 법령과 원천징수 정산에 따라 달라질 수 있습니다.

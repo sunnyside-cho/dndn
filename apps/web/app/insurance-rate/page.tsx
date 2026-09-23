@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AdSlot } from "@/components/AdSlot";
+import { AudienceLabel } from "@/components/AudienceLabel";
 import { FaqBlock } from "@/components/FaqBlock";
 import { SourceBadgeFromMeta } from "@/components/SourceBadge";
 import { insuranceRules as rules, nextYearRates, ACTIVE_YEAR } from "@/data/rules";
@@ -59,6 +61,15 @@ export default function InsuranceRatePage() {
       <p className="t-body mt-2">
         입력하신 월급은 서버로 전송되지 않고 이 화면 안에서만 계산됩니다.
       </p>
+
+      {/* 대상 라벨 (V-4) — 직장가입자 전용, 은퇴자·지역가입자는 F-03 으로 안내 */}
+      <AudienceLabel>
+        매달 월급을 받는 <strong>직장인용</strong>이에요. 은퇴하셨거나 지역가입자라면{" "}
+        <Link href="/dependent-check/" className="underline">
+          피부양자 체크
+        </Link>
+        에서 자격과 예상 보험료를 확인하세요.
+      </AudienceLabel>
 
       {/* 계산기 (클라이언트) */}
       <div className="mt-8">

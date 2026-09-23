@@ -5,6 +5,9 @@ import type { DependentInput, RegionalPremiumInput } from "@contracts/shared-typ
 const man = z.coerce.number().min(0, "0 이상을 입력해 주세요").max(10_000_000, "값이 너무 큽니다");
 
 export const dependentFormSchema = z.object({
+  /** 0단계 시점 선택 (TOOL_SPEC v1.1 · REVIEW V-3) — retired 는 문구·배지만 전환, 계산은 동일.
+   *  은퇴 예정자가 현재 근로소득을 넣어 오탈락 받는 결함 방지: 은퇴 후 예상 소득만 입력 안내. */
+  basis: z.enum(["current", "retired"]),
   /** 누구의 피부양자로 들어가는지 — 형제자매(sibling)는 재산 상한 1.8억 단일 기준 (codex #4) */
   supporter: z.enum(["child", "spouse", "parent", "sibling"]),
   bizRegistered: z.enum(["yes", "no"]),
@@ -31,6 +34,7 @@ export type DependentFormInput = z.input<typeof dependentFormSchema>;
 export type DependentFormValues = z.output<typeof dependentFormSchema>;
 
 export const dependentFormDefaults: DependentFormInput = {
+  basis: "current",
   supporter: "child",
   bizRegistered: "no",
   bizIncomeRegistered: "no",

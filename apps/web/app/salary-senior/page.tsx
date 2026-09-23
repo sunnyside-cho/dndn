@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AdSlot } from "@/components/AdSlot";
+import { AudienceLabel } from "@/components/AudienceLabel";
 import { FaqBlock } from "@/components/FaqBlock";
 import { SourceBadge } from "@/components/SourceBadge";
 import { insuranceRules as rules, simplifiedTaxTable, ACTIVE_YEAR } from "@/data/rules";
@@ -56,6 +57,10 @@ export default function SalarySeniorPage() {
       <p className="t-body mt-2">
         입력하신 나이·월급은 서버로 전송되지 않고 이 화면 안에서만 계산됩니다.
       </p>
+
+      <AudienceLabel>
+        은퇴 후 재취업·촉탁직·계약직으로 다시 일을 시작하는 60세 전후 분께요.
+      </AudienceLabel>
 
       {/* 계산기 (클라이언트) */}
       <div className="mt-8">
